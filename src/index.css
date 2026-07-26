@@ -1,0 +1,278 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   AKOUSTIX — Era theme tokens
+   Each era defines a palette + typography + radii + shadows.
+   Components reference the CSS variables (via Tailwind's
+   `era-*` color/font/radius/shadow tokens) so a single
+   data-era attribute on <html> restyles the entire app.
+   ============================================================ */
+
+:root,
+[data-era='cassette'] {
+  --era-bg: #221e1a;
+  --era-surface: #2e2823;
+  --era-surface-alt: #3a322a;
+  --era-raised: #f3e8cf;
+  --era-text: #f3e8cf;
+  --era-text-muted: #c8b48f;
+  --era-accent: #c97a3f;
+  --era-accent-solid: #c97a3f;
+  --era-accent-contrast: #221e1a;
+  --era-border: rgba(243, 232, 207, 0.12);
+  --era-track: rgba(243, 232, 207, 0.16);
+  --era-walnut: #6b4a2b;
+
+  --era-radius: 16px;
+  --era-radius-sm: 10px;
+  --era-radius-lg: 24px;
+  --era-radius-pill: 999px;
+
+  --era-shadow: 0 14px 34px rgba(0, 0, 0, 0.5);
+  --era-shadow-soft: 0 6px 18px rgba(0, 0, 0, 0.32);
+  --era-shadow-inset: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+
+  --era-font-display: 'DM Serif Display', 'Georgia', serif;
+  --era-font-body: 'Outfit', system-ui, sans-serif;
+  --era-font-mono: 'Special Elite', 'Courier New', monospace;
+
+  --era-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  --era-noise-opacity: 0.06;
+  --era-bevel: none;
+  color-scheme: dark;
+}
+
+[data-era='cd'] {
+  --era-bg: #f4f4f2;
+  --era-surface: #ffffff;
+  --era-surface-alt: #ececec;
+  --era-raised: #1a1a1a;
+  --era-text: #1a1a1a;
+  --era-text-muted: #6b6b6b;
+  --era-accent: #ff6a00;
+  --era-accent-solid: #ff6a00;
+  --era-accent-contrast: #ffffff;
+  --era-border: rgba(0, 0, 0, 0.08);
+  --era-track: rgba(0, 0, 0, 0.1);
+  --era-walnut: #b8b8b8;
+
+  --era-radius: 4px;
+  --era-radius-sm: 2px;
+  --era-radius-lg: 10px;
+  --era-radius-pill: 999px;
+
+  --era-shadow: 0 18px 40px rgba(0, 0, 0, 0.1);
+  --era-shadow-soft: 0 6px 18px rgba(0, 0, 0, 0.06);
+  --era-shadow-inset: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+
+  --era-font-display: 'Outfit', system-ui, sans-serif;
+  --era-font-body: 'Inter', system-ui, sans-serif;
+  --era-font-mono: 'Inter', system-ui, sans-serif;
+
+  --era-grain: none;
+  --era-noise-opacity: 0;
+  --era-bevel: none;
+  color-scheme: light;
+}
+
+[data-era='computer'] {
+  --era-bg: #008080;
+  --era-surface: #c0c0c0;
+  --era-surface-alt: #d4d0c8;
+  --era-raised: #ffffff;
+  --era-text: #000000;
+  --era-text-muted: #404040;
+  --era-accent: #000080;
+  --era-accent-solid: #000080;
+  --era-accent-contrast: #ffffff;
+  --era-border: #808080;
+  --era-track: #808080;
+  --era-walnut: #808080;
+
+  --era-radius: 0px;
+  --era-radius-sm: 0px;
+  --era-radius-lg: 0px;
+  --era-radius-pill: 0px;
+
+  --era-shadow: 2px 2px 0 #404040;
+  --era-shadow-soft: 1px 1px 0 #808080;
+  --era-shadow-inset: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080;
+
+  --era-font-display: 'VT323', 'Courier New', monospace;
+  --era-font-body: 'VT323', 'Courier New', monospace;
+  --era-font-mono: 'VT323', 'Courier New', monospace;
+
+  --era-grain: none;
+  --era-noise-opacity: 0;
+  /* Classic Windows raised-button bevel */
+  --era-bevel: inset 1px 1px 0 #ffffff, inset -1px -1px 0 #808080,
+    inset 2px 2px 0 #dfdfdf, inset -2px -2px 0 #909090;
+  color-scheme: light;
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--era-bg);
+    color: var(--era-text);
+    font-family: var(--era-font-body);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overscroll-behavior-y: none;
+    transition: background-color 600ms ease, color 600ms ease;
+  }
+
+  /* Computer era bumps the pixel font to a readable size */
+  [data-era='computer'] body,
+  [data-era='computer'] .font-body {
+    font-size: 18px;
+    line-height: 1.25;
+  }
+
+  ::selection {
+    background: var(--era-accent);
+    color: var(--era-accent-contrast);
+  }
+}
+
+/* ============================================================
+   Reusable era-aware utilities
+   ============================================================ */
+@layer components {
+  /* Film-grain overlay (cassette only) */
+  .era-grain-overlay::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: var(--era-grain);
+    opacity: var(--era-noise-opacity);
+    mix-blend-mode: overlay;
+    z-index: 1;
+  }
+
+  /* Era surface card */
+  .era-surface {
+    background-color: var(--era-surface);
+    border: 1px solid var(--era-border);
+    border-radius: var(--era-radius);
+    box-shadow: var(--era-shadow-soft);
+  }
+
+  /* Beveled button (computer era renders a real bevel, others a soft shadow) */
+  .era-bevel {
+    box-shadow: var(--era-bevel);
+  }
+
+  /* Custom era scrollbar */
+  .era-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--era-accent) transparent;
+  }
+  .era-scroll::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  .era-scroll::-webkit-scrollbar-track {
+    background: var(--era-surface-alt);
+  }
+  .era-scroll::-webkit-scrollbar-thumb {
+    background: var(--era-accent);
+    border: 2px solid var(--era-surface-alt);
+    border-radius: var(--era-radius-pill);
+  }
+  /* Chunky retro scrollbar for computer era */
+  [data-era='computer'] .era-scroll::-webkit-scrollbar-thumb {
+    border-radius: 0;
+    border: none;
+    background: #000080;
+  }
+  [data-era='computer'] .era-scroll::-webkit-scrollbar-track {
+    background: #c0c0c0;
+    box-shadow: inset 1px 1px 0 #808080;
+  }
+
+  /* Hide scrollbar for horizontal rails */
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Native range — era-aware scrubber */
+.akx-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: var(--era-radius-pill);
+  background: var(--era-track);
+  outline: none;
+  cursor: pointer;
+}
+.akx-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--era-radius-pill);
+  background: var(--era-accent-solid);
+  border: 2px solid var(--era-surface);
+  box-shadow: var(--era-shadow-soft);
+  transition: transform 120ms ease;
+}
+.akx-range::-webkit-slider-thumb:active {
+  transform: scale(1.25);
+}
+.akx-range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--era-surface);
+  border-radius: var(--era-radius-pill);
+  background: var(--era-accent-solid);
+}
+[data-era='computer'] .akx-range {
+  border-radius: 0;
+  height: 6px;
+  background: #808080;
+  box-shadow: inset 1px 1px 0 #404040;
+}
+[data-era='computer'] .akx-range::-webkit-slider-thumb {
+  border-radius: 0;
+  background: #ffffff;
+  border: 1px solid #808080;
+  box-shadow: 1px 1px 0 #404040;
+}
+
+/* ============================================================
+   Full-height mobile app shell — phone frame on large screens
+   ============================================================ */
+.akx-shell {
+  max-width: 480px;
+  margin-inline: auto;
+  min-height: 100dvh;
+  position: relative;
+  background-color: var(--era-bg);
+  transition: background-color 600ms ease;
+}
+@media (min-width: 640px) {
+  .akx-shell {
+    box-shadow: 0 0 80px rgba(0, 0, 0, 0.4);
+  }
+}
