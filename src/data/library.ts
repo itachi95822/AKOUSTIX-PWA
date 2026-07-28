@@ -11,47 +11,47 @@ import type { Album, Artist, Playlist, Song } from '@/types'
 
 const songs: Song[] = [
   // --- Midnight Tape (The Velour Hours) ---
-  { id: 's1', title: 'Cassette Memory', artist: 'The Velour Hours', albumId: 'a1', durationSec: 214, trackNo: 1 },
-  { id: 's2', title: 'Amber Light', artist: 'The Velour Hours', albumId: 'a1', durationSec: 198, trackNo: 2 },
-  { id: 's3', title: 'Reel To Reel', artist: 'The Velour Hours', albumId: 'a1', durationSec: 245, trackNo: 3 },
-  { id: 's4', title: 'Sunday Hiss', artist: 'The Velour Hours', albumId: 'a1', durationSec: 176, trackNo: 4 },
+  { id: 's1', title: 'Cassette Memory', artist: 'The Velour Hours', albumId: 'a1', durationSec: 214 },
+  { id: 's2', title: 'Amber Light', artist: 'The Velour Hours', albumId: 'a1', durationSec: 198 },
+  { id: 's3', title: 'Reel To Reel', artist: 'The Velour Hours', albumId: 'a1', durationSec: 245 },
+  { id: 's4', title: 'Sunday Hiss', artist: 'The Velour Hours', albumId: 'a1', durationSec: 176 },
 
   // --- Glass Horizon (Solene) ---
-  { id: 's5', title: 'Polished', artist: 'Solene', albumId: 'a2', durationSec: 232, trackNo: 1 },
-  { id: 's6', title: 'Mirror Surface', artist: 'Solene', albumId: 'a2', durationSec: 205, trackNo: 2 },
-  { id: 's7', title: 'Refraction', artist: 'Solene', albumId: 'a2', durationSec: 268, trackNo: 3 },
-  { id: 's8', title: 'Clear Day', artist: 'Solene', albumId: 'a2', durationSec: 190, trackNo: 4 },
+  { id: 's5', title: 'Polished', artist: 'Solene', albumId: 'a2', durationSec: 232 },
+  { id: 's6', title: 'Mirror Surface', artist: 'Solene', albumId: 'a2', durationSec: 205 },
+  { id: 's7', title: 'Refraction', artist: 'Solene', albumId: 'a2', durationSec: 268 },
+  { id: 's8', title: 'Clear Day', artist: 'Solene', albumId: 'a2', durationSec: 190 },
 
   // --- Desktop Daydreams (Pixel Pavement) ---
-  { id: 's9', title: 'Boot Sequence', artist: 'Pixel Pavement', albumId: 'a3', durationSec: 162, trackNo: 1 },
-  { id: 's10', title: 'Solitaire', artist: 'Pixel Pavement', albumId: 'a3', durationSec: 184, trackNo: 2 },
-  { id: 's11', title: 'Minimize', artist: 'Pixel Pavement', albumId: 'a3', durationSec: 207, trackNo: 3 },
-  { id: 's12', title: 'Critical Error', artist: 'Pixel Pavement', albumId: 'a3', durationSec: 153, trackNo: 4 },
+  { id: 's9', title: 'Boot Sequence', artist: 'Pixel Pavement', albumId: 'a3', durationSec: 162 },
+  { id: 's10', title: 'Solitaire', artist: 'Pixel Pavement', albumId: 'a3', durationSec: 184 },
+  { id: 's11', title: 'Minimize', artist: 'Pixel Pavement', albumId: 'a3', durationSec: 207 },
+  { id: 's12', title: 'Critical Error', artist: 'Pixel Pavement', albumId: 'a3', durationSec: 153 },
 
   // --- Long Drive Home (Juniper Lane) ---
-  { id: 's13', title: 'Long Drive Home', artist: 'Juniper Lane', albumId: 'a4', durationSec: 272, trackNo: 1 },
-  { id: 's14', title: 'Headlights', artist: 'Juniper Lane', albumId: 'a4', durationSec: 221, trackNo: 2 },
-  { id: 's15', title: 'Passenger', artist: 'Juniper Lane', albumId: 'a4', durationSec: 248, trackNo: 3 },
+  { id: 's13', title: 'Long Drive Home', artist: 'Juniper Lane', albumId: 'a4', durationSec: 272 },
+  { id: 's14', title: 'Headlights', artist: 'Juniper Lane', albumId: 'a4', durationSec: 221 },
+  { id: 's15', title: 'Passenger', artist: 'Juniper Lane', albumId: 'a4', durationSec: 248 },
 
   // --- Quiet Rooms (Nora Falk) ---
-  { id: 's16', title: 'Quiet Room', artist: 'Nora Falk', albumId: 'a5', durationSec: 201, trackNo: 1 },
-  { id: 's17', title: 'Tea At Four', artist: 'Nora Falk', albumId: 'a5', durationSec: 188, trackNo: 2 },
-  { id: 's18', title: 'Linen', artist: 'Nora Falk', albumId: 'a5', durationSec: 234, trackNo: 3 },
+  { id: 's16', title: 'Quiet Room', artist: 'Nora Falk', albumId: 'a5', durationSec: 201 },
+  { id: 's17', title: 'Tea At Four', artist: 'Nora Falk', albumId: 'a5', durationSec: 188 },
+  { id: 's18', title: 'Linen', artist: 'Nora Falk', albumId: 'a5', durationSec: 234 },
 
   // --- Neon Static (AUTO/8) ---
-  { id: 's19', title: 'Neon Static', artist: 'AUTO/8', albumId: 'a6', durationSec: 256, trackNo: 1 },
-  { id: 's20', title: 'Lowtide', artist: 'AUTO/8', albumId: 'a6', durationSec: 197, trackNo: 2 },
-  { id: 's21', title: 'Afterglow', artist: 'AUTO/8', albumId: 'a6', durationSec: 263, trackNo: 3 },
+  { id: 's19', title: 'Neon Static', artist: 'AUTO/8', albumId: 'a6', durationSec: 256 },
+  { id: 's20', title: 'Lowtide', artist: 'AUTO/8', albumId: 'a6', durationSec: 197 },
+  { id: 's21', title: 'Afterglow', artist: 'AUTO/8', albumId: 'a6', durationSec: 263 },
 
   // --- Wood & Wire (The Foundry Bros.) ---
-  { id: 's22', title: 'Wood & Wire', artist: 'The Foundry Bros.', albumId: 'a7', durationSec: 218, trackNo: 1 },
-  { id: 's23', title: 'Workshop', artist: 'The Foundry Bros.', albumId: 'a7', durationSec: 192, trackNo: 2 },
-  { id: 's24', title: 'Lacquer', artist: 'The Foundry Bros.', albumId: 'a7', durationSec: 240, trackNo: 3 },
+  { id: 's22', title: 'Wood & Wire', artist: 'The Foundry Bros.', albumId: 'a7', durationSec: 218 },
+  { id: 's23', title: 'Workshop', artist: 'The Foundry Bros.', albumId: 'a7', durationSec: 192 },
+  { id: 's24', title: 'Lacquer', artist: 'The Foundry Bros.', albumId: 'a7', durationSec: 240 },
 
   // --- Silver Spool (Marina Cross) ---
-  { id: 's25', title: 'Silver Spool', artist: 'Marina Cross', albumId: 'a8', durationSec: 226, trackNo: 1 },
-  { id: 's26', title: 'Magnetic', artist: 'Marina Cross', albumId: 'a8', durationSec: 209, trackNo: 2 },
-  { id: 's27', title: 'Side B', artist: 'Marina Cross', albumId: 'a8', durationSec: 251, trackNo: 3 }
+  { id: 's25', title: 'Silver Spool', artist: 'Marina Cross', albumId: 'a8', durationSec: 226 },
+  { id: 's26', title: 'Magnetic', artist: 'Marina Cross', albumId: 'a8', durationSec: 209 },
+  { id: 's27', title: 'Side B', artist: 'Marina Cross', albumId: 'a8', durationSec: 251 }
 ]
 
 const albums: Album[] = [

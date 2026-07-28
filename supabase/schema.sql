@@ -4,33 +4,27 @@
 -- Run once in the Supabase Dashboard → SQL Editor.
 -- Idempotent: safe to re-run.
 --
+-- `songs` table schema (already present, do not modify columns):
+--   id, title, artist, album, genre, duration (TEXT "mm:ss"),
+--   cover_url, music_url
+--
 -- What this does:
---   1. Ensures the `songs` table has optional track_no/year columns
---   2. Enables Row Level Security on `songs`
---   3. Grants public READ-ONLY access (SELECT) to the songs table
---   4. Creates a public `music` storage bucket for audio + cover art
---   5. Grants public READ access to objects in the `music` bucket
+--   1. Enables Row Level Security on `songs`
+--   2. Grants public READ-ONLY access (SELECT) to the songs table
+--   3. Creates a public `music` storage bucket for audio + cover art
+--   4. Grants public READ access to objects in the `music` bucket
 --
 -- The app uses ONLY the publishable (anon) key — protected by these
 -- policies. No service role key is ever exposed to the client.
 -- ============================================================
 
 -- -------------------------------------------------------
--- 1. Optional columns on the existing `songs` table
---    (the table already exists with id, title, artist, album,
---     duration, cover_url, music_url)
--- -------------------------------------------------------
-alter table public.songs
-  add column if not exists track_no int,
-  add column if not exists year int;
-
--- -------------------------------------------------------
--- 2. Enable Row Level Security on songs
+-- 1. Enable Row Level Security on songs
 -- -------------------------------------------------------
 alter table public.songs enable row level security;
 
 -- -------------------------------------------------------
--- 3. Read-only policy for songs (anon + authenticated)
+-- 2. Read-only policy for songs (anon + authenticated)
 --    Anyone with the publishable key can READ songs.
 --    No INSERT/UPDATE/DELETE is granted from the client.
 -- -------------------------------------------------------
@@ -47,7 +41,7 @@ drop policy if exists "songs no client writes" on public.songs;
 -- No INSERT/UPDATE/DELETE policy => writes are denied by RLS.
 
 -- -------------------------------------------------------
--- 4. Create the `music` storage bucket (public = readable via
+-- 3. Create the `music` storage bucket (public = readable via
 --    public URLs without an authenticated session)
 -- -------------------------------------------------------
 insert into storage.buckets (id, name, public)
@@ -55,7 +49,7 @@ values ('music', 'music', true)
 on conflict (id) do nothing;
 
 -- -------------------------------------------------------
--- 5. Public READ policy for objects in the `music` bucket
+-- 4. Public READ policy for objects in the `music` bucket
 --    (audio files + cover art). No write policy => uploads
 --    require the service role key (server-side only).
 -- -------------------------------------------------------
@@ -69,3 +63,4 @@ create policy "music bucket public read"
 -- Done. The app can now:
 --   * GET /rest/v1/songs           → list + search songs (read-only)
 --   * GET /storage/v1/object/public/music/<path> → stream audio / show cover art
+

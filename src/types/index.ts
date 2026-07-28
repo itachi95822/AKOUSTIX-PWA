@@ -11,11 +11,12 @@ export interface Song {
   title: string
   artist: string
   albumId: string
-  /** Duration in seconds. */
+  /** Duration in seconds (parsed from the `duration` TEXT "mm:ss" column). */
   durationSec: number
-  /** Optional remote URL — left empty until audio streaming is wired. */
+  /** Optional remote URL — resolved from the `music_url` column / `music` bucket. */
   url?: string
-  trackNo?: number
+  /** Genre from the `genre` column (e.g. "Romance", "Calming"). */
+  genre?: string
 }
 
 export interface Album {

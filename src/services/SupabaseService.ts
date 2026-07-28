@@ -9,13 +9,17 @@ import { resolvePublicUrl, supabase } from './supabaseClient'
 // resolves audio + cover art URLs from the `music` storage
 // bucket (public read). No writes, no service role key.
 //
-// The `songs` table columns (as observed on this project):
-//   id, title, artist, album, duration, cover_url, music_url
+// `songs` table columns (the app's actual schema):
+//   id, title, artist, album, genre, duration, cover_url, music_url
 //
-// `cover_url` / `music_url` may be full URLs OR storage paths
-// in the `music` bucket — both are resolved to public URLs.
-// Playlists still come from the local mock (no playlists table
-// was requested); swap in a Supabase table later if needed.
+// `duration` is a TEXT column storing "mm:ss" (e.g. "4:32", "6:02"),
+// NOT total seconds. It is parsed to seconds for the player clock.
+// `genre` is a populated TEXT column (e.g. "Romance", "Calming").
+//
+// `cover_url` / `music_url` may be full URLs OR storage paths in
+// the `music` bucket — both are resolved to public URLs.
+// Playlists still come from the local mock (no playlists table);
+// swap in a Supabase table later if needed.
 // ============================================================
 
 interface SongRow {
@@ -23,17 +27,28 @@ interface SongRow {
   title: string
   artist: string
   album: string
-  duration: number
+  genre: string | null
+  /** TEXT "mm:ss" (or "h:mm:ss"). */
+  duration: string | null
   cover_url: string | null
   music_url: string | null
-  track_no?: number | null
-  year?: number | null
 }
 
 const STORAGE_BUCKET = 'music'
 
 function slug(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'unknown'
+}
+
+/** Parse "mm:ss" or "h:mm:ss" → seconds. Returns 0 on bad input. */
+export function parseDurationToSeconds(text: string | null | undefined): number {
+  if (!text) return 0
+  const parts = text.trim().split(':').map((p) => Number.parseInt(p, 10))
+  if (parts.some((n) => Number.isNaN(n))) return 0
+  const sec = parts.pop() ?? 0
+  const min = parts.pop() ?? 0
+  const hr = parts.pop() ?? 0
+  return hr * 3600 + min * 60 + sec
 }
 
 function mapRow(row: SongRow): { song: Song; albumTitle: string; cover: string | undefined } {
@@ -45,9 +60,9 @@ function mapRow(row: SongRow): { song: Song; albumTitle: string; cover: string |
     title: row.title,
     artist: row.artist,
     albumId,
-    durationSec: Number(row.duration) || 0,
+    durationSec: parseDurationToSeconds(row.duration),
     url,
-    trackNo: row.track_no ?? undefined
+    genre: row.genre ?? undefined
   }
   return { song, albumTitle: row.album, cover }
 }
@@ -64,7 +79,7 @@ export const SupabaseService = {
 
     const { data, error } = await supabase
       .from('songs')
-      .select('id,title,artist,album,duration,cover_url,music_url')
+      .select('id,title,artist,album,genre,duration,cover_url,music_url')
       .order('album', { ascending: true })
       .order('title', { ascending: true })
 
@@ -87,7 +102,7 @@ export const SupabaseService = {
           id: song.albumId,
           title: albumTitle,
           artist: song.artist,
-          year: row.year ?? 0,
+          year: 0,
           cover: cover ?? `linear-gradient(135deg,#221e1a 0%,#c97a3f 100%)`,
           songIds: []
         })
@@ -118,7 +133,7 @@ export const SupabaseService = {
     if (!q) return []
     const { data, error } = await supabase
       .from('songs')
-      .select('id,title,artist,album,duration,cover_url,music_url')
+      .select('id,title,artist,album,genre,duration,cover_url,music_url')
       .or(`title.ilike.%${q}%,artist.ilike.%${q}%`)
       .limit(50)
     if (error) throw error
