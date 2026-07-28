@@ -121,7 +121,12 @@ export const usePlayerStore = create<PlayerState>()(
         pushRecent(queue[prevIdx].id)
       },
 
-      seek: (sec) => set({ currentTime: Math.max(0, sec) }),
+      seek: (sec) => {
+        const t = Math.max(0, sec)
+        set({ currentTime: t })
+        const el = audioEl
+        if (el && !Number.isNaN(el.duration)) el.currentTime = t
+      },
 
       setVolume: (v) => set({ volume: Math.max(0, Math.min(1, v)) }),
 
@@ -167,19 +172,84 @@ function pushRecent(songId: string) {
   usePlayerStore.setState({ recentlyPlayed: next })
 }
 
-// ---------- Simulated playback ticker ----------
-// Advances currentTime by 1s each second while playing.
-// Swap this out for AudioStreamingService events later.
+// ---------- Playback engine ----------
+// Real audio streaming when a song has a URL (Supabase `music_url`),
+// simulated ticker otherwise (mock library). A single shared
+// <audio> element drives currentTime + track-end transitions; the
+// 1s ticker only runs for URL-less songs so the UI still advances.
 
+let audioEl: HTMLAudioElement | null = null
 let ticker: ReturnType<typeof setInterval> | null = null
 
+function getAudio(): HTMLAudioElement | null {
+  if (typeof window === 'undefined') return null
+  if (!audioEl) {
+    audioEl = new Audio()
+    audioEl.preload = 'auto'
+    // Sync store time from the element's clock.
+    audioEl.addEventListener('timeupdate', () => {
+      if (!audioEl) return
+      const s = usePlayerStore.getState()
+      if (s.isPlaying) s._tick(audioEl.currentTime)
+    })
+    // Track ended → next (honors repeat/shuffle via the store).
+    audioEl.addEventListener('ended', () => {
+      usePlayerStore.getState()._handleTrackEnd()
+    })
+    // Apply current volume.
+    const v = usePlayerStore.getState().volume
+    audioEl.volume = v
+  }
+  return audioEl
+}
+
+/** Load a song into the audio element and start/pause per store state. */
+function syncAudio() {
+  const s = usePlayerStore.getState()
+  const cur = s.queue[s.index]
+  const el = getAudio()
+  if (!el || !cur) return
+  const url = cur.url
+  if (!url) {
+    // No real URL — simulation handles it. Pause any live audio.
+    el.pause()
+    return
+  }
+  if (el.src !== url) {
+    el.src = url
+    el.currentTime = s.currentTime
+  }
+  el.volume = s.volume
+  if (s.isPlaying) {
+    void el.play().catch(() => {
+      // Autoplay can be blocked before a user gesture — reflect paused state.
+      usePlayerStore.setState({ isPlaying: false })
+    })
+  } else {
+    el.pause()
+  }
+}
+
+// Re-sync whenever playback-affecting state changes.
+usePlayerStore.subscribe((state, prev) => {
+  if (
+    state.queue !== prev.queue ||
+    state.index !== prev.index ||
+    state.isPlaying !== prev.isPlaying ||
+    state.volume !== prev.volume
+  ) {
+    syncAudio()
+  }
+})
+
+// Simulated ticker — only advances for URL-less (mock) songs.
 function ensureTicker() {
   if (ticker) return
   ticker = setInterval(() => {
     const s = usePlayerStore.getState()
     if (!s.isPlaying) return
     const cur = s.queue[s.index]
-    if (!cur) return
+    if (!cur || cur.url) return // real audio drives itself
     const nextTime = s.currentTime + 1
     if (nextTime >= cur.durationSec) {
       s._handleTrackEnd()

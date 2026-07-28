@@ -2,8 +2,9 @@ import { motion } from 'framer-motion'
 import { cx } from '@/utils/format'
 
 // ============================================================
-// AlbumArt — renders an album's cover (gradient when no image
-// is present) in an era-aware frame. Optional gentle float.
+// AlbumArt — renders an album's cover in an era-aware frame.
+// Supports both CSS gradients (mock library) and real image
+// URLs (Supabase cover art). Optional gentle float.
 // ============================================================
 
 interface AlbumArtProps {
@@ -24,6 +25,10 @@ const SIZES: Record<NonNullable<AlbumArtProps['size']>, string> = {
   full: 'w-full aspect-square'
 }
 
+function isImageUrl(cover: string): boolean {
+  return /^https?:\/\//i.test(cover) || cover.startsWith('/')
+}
+
 export function AlbumArt({
   cover,
   alt,
@@ -34,6 +39,7 @@ export function AlbumArt({
   onClick
 }: AlbumArtProps) {
   const Comp = onClick ? motion.button : motion.div
+  const image = isImageUrl(cover)
   return (
     <Comp
       type={onClick ? 'button' : undefined}
@@ -42,11 +48,7 @@ export function AlbumArt({
       whileTap={onClick ? { scale: 0.97 } : undefined}
       transition={{ type: 'spring', stiffness: 320, damping: 24 }}
       animate={float ? { y: [0, -8, 0] } : undefined}
-      style={
-        float
-          ? { animationDuration: '6s' }
-          : undefined
-      }
+      style={float ? { animationDuration: '6s' } : undefined}
       className={cx(
         SIZES[size],
         rounded && 'rounded-era',
@@ -56,9 +58,24 @@ export function AlbumArt({
       )}
       aria-label={alt}
     >
-      <div className="absolute inset-0" style={{ background: cover }} />
+      {image ? (
+        <img
+          src={cover}
+          alt={alt}
+          loading="lazy"
+          decoding="async"
+          className="absolute inset-0 w-full h-full object-cover"
+          onError={(e) => {
+            // If the image fails to load, fall back to a gradient so the
+            // frame is never empty.
+            (e.currentTarget as HTMLImageElement).style.display = 'none'
+          }}
+        />
+      ) : (
+        <div className="absolute inset-0" style={{ background: cover }} />
+      )}
       {/* subtle gloss for depth */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-black/20" />
+      <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-black/20 pointer-events-none" />
     </Comp>
   )
 }
