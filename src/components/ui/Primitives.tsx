@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Loader2, RefreshCw } from 'lucide-react'
 import { cx } from '@/utils/format'
 
 // ============================================================
@@ -75,6 +76,41 @@ export function EmptyState({
       <p className="mt-2 text-[14px] text-era-text-muted font-body max-w-xs mx-auto">
         {message}
       </p>
+    </div>
+  )
+}
+
+export function LoadingState({ label = 'Loading…' }: { label?: string }) {
+  return (
+    <div className="px-6 py-16 flex flex-col items-center gap-3 text-era-text-muted">
+      <Loader2 size={28} className="animate-spin text-era-accent-solid" />
+      <p className="font-mono text-[13px] tracking-wide">{label}</p>
+    </div>
+  )
+}
+
+export function ErrorState({
+  message,
+  onRetry
+}: {
+  message: string
+  onRetry?: () => void
+}) {
+  return (
+    <div className="px-6 py-16 flex flex-col items-center gap-3 text-center">
+      <div className="w-16 h-16 rounded-era era-bevel bg-era-surface flex items-center justify-center text-era-accent-solid">
+        <RefreshCw size={26} />
+      </div>
+      <p className="font-display text-xl text-era-text">Couldn’t load your library</p>
+      <p className="text-[14px] text-era-text-muted font-body max-w-xs">{message}</p>
+      {onRetry && (
+        <button
+          onClick={onRetry}
+          className="mt-1 era-bevel rounded-era bg-era-accent-solid text-era-accent-contrast h-10 px-5 text-[14px] font-body inline-flex items-center gap-2"
+        >
+          <RefreshCw size={15} /> Try again
+        </button>
+      )}
     </div>
   )
 }

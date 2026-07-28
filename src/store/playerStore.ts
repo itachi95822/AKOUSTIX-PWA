@@ -5,11 +5,10 @@ import type { RepeatMode, Song } from '@/types'
 // ============================================================
 // Player store — the single source of truth for playback.
 //
-// Today playback is SIMULATED with a 1s ticker because the
-// mock library has no audio URLs. When `AudioStreamingService`
-// is wired in, replace the ticker body with real element
-// control — the store's public API stays the same, so every
-// screen and every era-player keeps working untouched.
+// A shared <audio> element streams songs from their Supabase
+// `music_url` (resolved via the `music` storage bucket). The
+// store's public API (play/pause/next/seek/...) is stable so
+// every screen and every era-player keeps working untouched.
 //
 // Era switching never touches this store, so changing eras
 // never interrupts the music.
@@ -173,13 +172,13 @@ function pushRecent(songId: string) {
 }
 
 // ---------- Playback engine ----------
-// Real audio streaming when a song has a URL (Supabase `music_url`),
-// simulated ticker otherwise (mock library). A single shared
-// <audio> element drives currentTime + track-end transitions; the
-// 1s ticker only runs for URL-less songs so the UI still advances.
+// A single shared <audio> element streams songs from their
+// Supabase `music_url` (resolved via the `music` storage bucket).
+// `timeupdate` drives the progress clock; `ended` advances to the
+// next track (honoring shuffle/repeat). If a song has no URL it
+// simply won't play — no simulation, no fake progress.
 
 let audioEl: HTMLAudioElement | null = null
-let ticker: ReturnType<typeof setInterval> | null = null
 
 function getAudio(): HTMLAudioElement | null {
   if (typeof window === 'undefined') return null
@@ -211,7 +210,7 @@ function syncAudio() {
   if (!el || !cur) return
   const url = cur.url
   if (!url) {
-    // No real URL — simulation handles it. Pause any live audio.
+    // No streamable URL — nothing to play.
     el.pause()
     return
   }
@@ -241,25 +240,6 @@ usePlayerStore.subscribe((state, prev) => {
     syncAudio()
   }
 })
-
-// Simulated ticker — only advances for URL-less (mock) songs.
-function ensureTicker() {
-  if (ticker) return
-  ticker = setInterval(() => {
-    const s = usePlayerStore.getState()
-    if (!s.isPlaying) return
-    const cur = s.queue[s.index]
-    if (!cur || cur.url) return // real audio drives itself
-    const nextTime = s.currentTime + 1
-    if (nextTime >= cur.durationSec) {
-      s._handleTrackEnd()
-    } else {
-      s._tick(nextTime)
-    }
-  }, 1000)
-}
-
-ensureTicker()
 
 // ---------- Selectors / helpers ----------
 

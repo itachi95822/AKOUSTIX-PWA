@@ -2,13 +2,13 @@ import type { Album, Artist, Playlist, Song } from '@/types'
 import { LibraryService } from './LibraryService'
 
 // ============================================================
-// Firestore service (PLACEHOLDER).
+// Firestore service (PLACEHOLDER — not currently used).
 //
-// Mirrors `LibraryService` so the screens can keep using the
-// same function shapes. Today every method delegates to the
-// local mock library. Switch each body to a Firestore query
-// (e.g. `getDocs(collection(db, 'songs'))`) when wiring the
-// backend — components won't need to change.
+// AKOUSTIX reads its catalog from Supabase (SupabaseService).
+// This module is kept as a future alternative backend with the
+// same function shapes; it currently delegates to LibraryService
+// (which is Supabase-backed) so callers keep working if they
+// reference it. Implement against Firestore when needed.
 // ============================================================
 
 export const FirestoreService = {

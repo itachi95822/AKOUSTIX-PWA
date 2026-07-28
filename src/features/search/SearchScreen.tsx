@@ -1,25 +1,23 @@
 import { useMemo, useState } from 'react'
 import { Search as SearchIcon, X, Music2 } from 'lucide-react'
-import { ScreenHeader, EmptyState } from '@/components/ui/Primitives'
+import { ScreenHeader, EmptyState, LoadingState, ErrorState } from '@/components/ui/Primitives'
 import { SongRow } from '@/components/cards/SongRow'
 import { useLibraryStore } from '@/store/libraryStore'
 import { usePlayerStore } from '@/store/playerStore'
-import { LibraryService } from '@/services'
 
 // ============================================================
-// Search — searches ONLY the AKOUSTIX in-app library.
-// No external suggestions. When a query has no matches it
-// shows the exact required empty-state message.
+// Search — searches ONLY the AKOUSTIX in-app library (loaded
+// from Supabase). No external suggestions. When a query has no
+// matches it shows the exact required empty-state message.
 // ============================================================
 
 export function SearchScreen() {
   const [query, setQuery] = useState('')
-  const songs = useLibraryStore((s) => s.songs)
+  const { status, error, songs } = useLibraryStore()
+  const retry = useLibraryStore((s) => s.retry)
   const playQueue = usePlayerStore((s) => s.playQueue)
 
-  // Synchronous local search across the already-loaded library
-  // (LibraryService.searchSongs is the same logic, ready to
-  // swap for a Firestore query later).
+  // Synchronous local search across the already-loaded library.
   const results = useMemo(() => {
     const q = query.trim().toLowerCase()
     if (!q) return []
@@ -73,15 +71,33 @@ export function SearchScreen() {
           )}
         </div>
         <p className="mt-2 text-[12px] font-mono text-era-text-muted">
-          {hasQuery
-            ? `${results.length} result${results.length === 1 ? '' : 's'} in your library`
-            : `${songs.length} songs available in the AKOUSTIX Library`}
+          {status === 'loaded'
+            ? hasQuery
+              ? `${results.length} result${results.length === 1 ? '' : 's'} in your library`
+              : `${songs.length} songs available in the AKOUSTIX Library`
+            : ''}
         </p>
       </div>
 
       {/* Results / states */}
       <div className="mt-4">
-        {!hasQuery && (
+        {(status === 'loading' || status === 'idle') && (
+          <LoadingState label="Loading your AKOUSTIX library…" />
+        )}
+
+        {status === 'error' && (
+          <ErrorState message={error ?? 'Please check your connection and try again.'} onRetry={retry} />
+        )}
+
+        {status === 'loaded' && songs.length === 0 && !hasQuery && (
+          <EmptyState
+            icon={<Music2 size={26} />}
+            title="Your library is empty"
+            message="No songs in the AKOUSTIX Library yet. Add songs to your Supabase `songs` table to search them."
+          />
+        )}
+
+        {status === 'loaded' && songs.length > 0 && !hasQuery && (
           <EmptyState
             icon={<SearchIcon size={26} />}
             title="Search the AKOUSTIX Library"
@@ -89,7 +105,7 @@ export function SearchScreen() {
           />
         )}
 
-        {hasQuery && results.length === 0 && (
+        {status === 'loaded' && hasQuery && results.length === 0 && (
           <EmptyState
             icon={<Music2 size={26} />}
             title="No songs found in the AKOUSTIX Library."
@@ -97,7 +113,7 @@ export function SearchScreen() {
           />
         )}
 
-        {hasQuery && results.length > 0 && (
+        {status === 'loaded' && hasQuery && results.length > 0 && (
           <ul className="space-y-0.5">
             {results.map((song) => (
               <li key={song.id}>
@@ -110,6 +126,3 @@ export function SearchScreen() {
     </div>
   )
 }
-
-// Re-export to keep the service seam referenced (tree-shaken).
-void LibraryService

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Download, Folder, Music, ListMusic, Star, User } from 'lucide-react'
-import { ScreenHeader, EmptyState, Pill } from '@/components/ui/Primitives'
+import { ScreenHeader, EmptyState, Pill, LoadingState, ErrorState } from '@/components/ui/Primitives'
 import { AlbumCard } from '@/components/cards/AlbumCard'
 import { PlaylistCard } from '@/components/cards/PlaylistCard'
 import { SongRow } from '@/components/cards/SongRow'
@@ -26,7 +26,8 @@ const TABS: { id: Tab; label: string; icon: typeof Music }[] = [
 export function LibraryScreen() {
   const navigate = useNavigate()
   const [tab, setTab] = useState<Tab>('albums')
-  const { albums, artists, playlists, songs } = useLibraryStore()
+  const { status, error, albums, artists, playlists, songs } = useLibraryStore()
+  const retry = useLibraryStore((s) => s.retry)
   const favourites = usePlayerStore((s) => s.favourites)
   const playQueue = usePlayerStore((s) => s.playQueue)
 
@@ -73,7 +74,18 @@ export function LibraryScreen() {
       </div>
 
       <div className="mt-4">
-        {tab === 'albums' && (
+        {(status === 'loading' || status === 'idle') && <LoadingState label="Loading your library…" />}
+        {status === 'error' && (
+          <ErrorState message={error ?? 'Please check your connection and try again.'} onRetry={retry} />
+        )}
+        {status === 'loaded' && songs.length === 0 && (
+          <EmptyState
+            icon={<Music size={26} />}
+            title="Your library is empty"
+            message="No songs in the AKOUSTIX Library yet. Add songs to your Supabase `songs` table to see them here."
+          />
+        )}
+        {status === 'loaded' && songs.length > 0 && tab === 'albums' && (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 px-4">
             {albums.map((a) => (
               <AlbumCard key={a.id} album={a} width="sm" onPlay={() => playAlbum(a.id)} />
@@ -81,7 +93,7 @@ export function LibraryScreen() {
           </div>
         )}
 
-        {tab === 'artists' && (
+        {status === 'loaded' && songs.length > 0 && tab === 'artists' && (
           <ul className="px-2">
             {artists.map((ar) => (
               <li
@@ -106,15 +118,25 @@ export function LibraryScreen() {
           </ul>
         )}
 
-        {tab === 'playlists' && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 px-4">
-            {playlists.map((p) => (
-              <PlaylistCard key={p.id} playlist={p} onPlay={() => playPlaylist(p.id)} />
-            ))}
-          </div>
+        {status === 'loaded' && songs.length > 0 && tab === 'playlists' && (
+          <>
+            {playlists.length === 0 ? (
+              <EmptyState
+                icon={<ListMusic size={26} />}
+                title="No playlists yet"
+                message="Playlists will appear here once a playlists table is added to your Supabase project."
+              />
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 px-4">
+                {playlists.map((p) => (
+                  <PlaylistCard key={p.id} playlist={p} onPlay={() => playPlaylist(p.id)} />
+                ))}
+              </div>
+            )}
+          </>
         )}
 
-        {tab === 'favourites' && (
+        {status === 'loaded' && songs.length > 0 && tab === 'favourites' && (
           <>
             {favouriteSongs.length === 0 ? (
               <EmptyState

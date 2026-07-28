@@ -8,8 +8,8 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 // is NEVER referenced in the app — it stays server-side.
 //
 // Config is read from Vite env vars (.env, gitignored). If the
-// vars are absent, `supabase` is null and services fall back to
-// the local mock library so the app keeps working.
+// vars are absent, `supabase` is null and the app shows an error
+// state instead of loading songs.
 // ============================================================
 
 const url = import.meta.env.VITE_SUPABASE_URL

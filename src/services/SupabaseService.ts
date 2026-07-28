@@ -1,32 +1,32 @@
 import type { Album, Artist, Playlist, Song } from '@/types'
-import { library } from '@/data/library'
 import { resolvePublicUrl, supabase } from './supabaseClient'
 
 // ============================================================
-// SupabaseService — reads the music catalog from Supabase.
-//
-// Reads only from the `songs` table (RLS: public read-only) and
-// resolves audio + cover art URLs from the `music` storage
+// SupabaseService — the ONLY source of truth for the music
+// catalog. Reads from the `songs` table (RLS: public read-only)
+// and resolves audio + cover art URLs from the `music` storage
 // bucket (public read). No writes, no service role key.
 //
 // `songs` table columns (the app's actual schema):
-//   id, title, artist, album, genre, duration, cover_url, music_url
+//   id, title, artist, album, genre, duration (TEXT "mm:ss"),
+//   cover_url, music_url
 //
-// `duration` is a TEXT column storing "mm:ss" (e.g. "4:32", "6:02"),
-// NOT total seconds. It is parsed to seconds for the player clock.
+// `duration` is a TEXT column storing "mm:ss" (e.g. "4:32",
+// "6:02"). It is parsed to seconds for the player clock.
 // `genre` is a populated TEXT column (e.g. "Romance", "Calming").
 //
 // `cover_url` / `music_url` may be full URLs OR storage paths in
 // the `music` bucket — both are resolved to public URLs.
-// Playlists still come from the local mock (no playlists table);
-// swap in a Supabase table later if needed.
+//
+// There is no playlists table — playlists resolve to an empty
+// array. Add a `playlists` table later and surface it here.
 // ============================================================
 
 interface SongRow {
   id: string | number
   title: string
   artist: string
-  album: string
+  album: string | null
   genre: string | null
   /** TEXT "mm:ss" (or "h:mm:ss"). */
   duration: string | null
@@ -52,7 +52,7 @@ export function parseDurationToSeconds(text: string | null | undefined): number 
 }
 
 function mapRow(row: SongRow): { song: Song; albumTitle: string; cover: string | undefined } {
-  const albumId = slug(row.album)
+  const albumId = slug(row.album ?? 'unknown')
   const cover = resolvePublicUrl(STORAGE_BUCKET, row.cover_url) ?? row.cover_url ?? undefined
   const url = resolvePublicUrl(STORAGE_BUCKET, row.music_url) ?? row.music_url ?? undefined
   const song: Song = {
@@ -64,7 +64,14 @@ function mapRow(row: SongRow): { song: Song; albumTitle: string; cover: string |
     url,
     genre: row.genre ?? undefined
   }
-  return { song, albumTitle: row.album, cover }
+  return { song, albumTitle: row.album ?? 'Unknown', cover }
+}
+
+export interface LibraryData {
+  songs: Song[]
+  albums: Album[]
+  artists: Artist[]
+  playlists: Playlist[]
 }
 
 export const SupabaseService = {
@@ -73,8 +80,8 @@ export const SupabaseService = {
     return Boolean(supabase)
   },
 
-  /** Load the full catalog from Supabase. Throws if unreachable. */
-  async loadLibrary(): Promise<{ songs: Song[]; albums: Album[]; artists: Artist[]; playlists: Playlist[] }> {
+  /** Load the full catalog from Supabase. Empty table → empty arrays. Throws on error. */
+  async loadLibrary(): Promise<LibraryData> {
     if (!supabase) throw new Error('Supabase client not configured')
 
     const { data, error } = await supabase
@@ -85,8 +92,7 @@ export const SupabaseService = {
 
     if (error) throw error
     if (!data || data.length === 0) {
-      // Table exists but is empty — fall back to mock so the app isn't blank.
-      return library
+      return { songs: [], albums: [], artists: [], playlists: [] }
     }
 
     const songs: Song[] = []
@@ -121,14 +127,14 @@ export const SupabaseService = {
       songs,
       albums: Array.from(albumMap.values()),
       artists: Array.from(artistMap.values()),
-      // Playlists not in Supabase yet — keep the curated mock ones.
-      playlists: library.playlists
+      // No playlists table yet → empty.
+      playlists: []
     }
   },
 
-  /** In-library search across songs from Supabase. */
+  /** In-library search across songs from Supabase. Throws on error. */
   async searchSongs(query: string): Promise<Song[]> {
-    if (!supabase) return []
+    if (!supabase) throw new Error('Supabase client not configured')
     const q = query.trim().toLowerCase()
     if (!q) return []
     const { data, error } = await supabase

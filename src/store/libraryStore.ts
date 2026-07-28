@@ -3,36 +3,45 @@ import type { Album, Artist, Playlist, Song } from '@/types'
 import { LibraryService } from '@/services/LibraryService'
 
 // ============================================================
-// Library store — loads the music catalog once at startup so
-// every screen can read it synchronously. Swap the underlying
-// `LibraryService` for a Firestore-backed impl later; this
-// store's shape stays the same.
+// Library store — loads the music catalog once at startup from
+// Supabase (the only source of truth) so every screen can read
+// it synchronously. Exposes loading / error / empty states so
+// screens can show the right UI instead of fake songs.
 // ============================================================
 
+export type LibraryStatus = 'idle' | 'loading' | 'loaded' | 'error'
+
 interface LibraryState {
-  loaded: boolean
+  status: LibraryStatus
+  error: string | null
   songs: Song[]
   albums: Album[]
   artists: Artist[]
   playlists: Playlist[]
   load: () => Promise<void>
+  retry: () => Promise<void>
 }
 
 export const useLibraryStore = create<LibraryState>((set, get) => ({
-  loaded: false,
+  status: 'idle',
+  error: null,
   songs: [],
   albums: [],
   artists: [],
   playlists: [],
   load: async () => {
-    if (get().loaded) return
-    const [songs, albums, artists, playlists] = await Promise.all([
-      LibraryService.getAllSongs(),
-      LibraryService.getAllAlbums(),
-      LibraryService.getAllArtists(),
-      LibraryService.getAllPlaylists()
-    ])
-    set({ songs, albums, artists, playlists, loaded: true })
+    if (get().status === 'loading' || get().status === 'loaded') return
+    set({ status: 'loading', error: null })
+    try {
+      const data = await LibraryService.loadLibrary()
+      set({ ...data, status: 'loaded', error: null })
+    } catch (e) {
+      set({ status: 'error', error: e instanceof Error ? e.message : 'Failed to load library' })
+    }
+  },
+  retry: async () => {
+    set({ status: 'idle', error: null, songs: [], albums: [], artists: [], playlists: [] })
+    await get().load()
   }
 }))
 

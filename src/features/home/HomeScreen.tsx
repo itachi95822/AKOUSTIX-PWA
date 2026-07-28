@@ -1,12 +1,12 @@
 import { useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Play, History, Heart, Disc3, Compass } from 'lucide-react'
+import { Play, History, Heart, Disc3, Compass, Music } from 'lucide-react'
 import { BrandMark } from '@/components/brand/BrandMark'
 import { AlbumCard } from '@/components/cards/AlbumCard'
 import { PlaylistCard } from '@/components/cards/PlaylistCard'
 import { Rail } from '@/components/cards/Rail'
-import { SectionHeader } from '@/components/ui/Primitives'
+import { SectionHeader, LoadingState, ErrorState, EmptyState } from '@/components/ui/Primitives'
 import { AlbumArt } from '@/components/ui/AlbumArt'
 import { useEraStore, ERAS } from '@/eras/EraProvider'
 import { useLibraryStore, useAlbumById, useSongById } from '@/store/libraryStore'
@@ -21,21 +21,22 @@ import { usePlayerStore } from '@/store/playerStore'
 export function HomeScreen() {
   const navigate = useNavigate()
   const era = useEraStore((s) => s.era)
-  const { loaded, albums, playlists, songs } = useLibraryStore()
+  const { status, error, albums, playlists, songs } = useLibraryStore()
+  const retry = useLibraryStore((s) => s.retry)
   const recentlyPlayed = usePlayerStore((s) => s.recentlyPlayed)
   const favourites = usePlayerStore((s) => s.favourites)
   const playQueue = usePlayerStore((s) => s.playQueue)
   const playSong = usePlayerStore((s) => s.playSong)
 
-  // Seed a little history on first run so Home isn't empty.
+  // Seed a little history on first load so Home isn't empty.
   useEffect(() => {
-    if (!loaded) return
+    if (status !== 'loaded') return
     if (usePlayerStore.getState().recentlyPlayed.length === 0 && songs.length) {
       usePlayerStore.setState({
         recentlyPlayed: songs.slice(0, 5).map((s) => s.id)
       })
     }
-  }, [loaded, songs])
+  }, [status, songs])
 
   const recentAlbums = useMemo(() => {
     const seen = new Set<string>()
@@ -91,8 +92,41 @@ export function HomeScreen() {
     navigate('/now-playing')
   }
 
-  if (!loaded) {
-    return <div className="px-4 pt-10 font-mono text-era-text-muted">Loading AKOUSTIX…</div>
+  if (status === 'loading' || status === 'idle') {
+    return (
+      <div className="pb-6">
+        <div className="px-4 pt-8">
+          <BrandMark />
+        </div>
+        <LoadingState label="Loading your AKOUSTIX library…" />
+      </div>
+    )
+  }
+
+  if (status === 'error') {
+    return (
+      <div className="pb-6">
+        <div className="px-4 pt-8">
+          <BrandMark />
+        </div>
+        <ErrorState message={error ?? 'Please check your connection and try again.'} onRetry={retry} />
+      </div>
+    )
+  }
+
+  if (songs.length === 0) {
+    return (
+      <div className="pb-6">
+        <div className="px-4 pt-8">
+          <BrandMark />
+        </div>
+        <EmptyState
+          icon={<Music size={26} />}
+          title="Your library is empty"
+          message="No songs found in the AKOUSTIX Library yet. Add songs to your Supabase `songs` table to see them here."
+        />
+      </div>
+    )
   }
 
   return (
@@ -185,24 +219,26 @@ export function HomeScreen() {
         </Rail>
       </section>
 
-      {/* Featured Playlists */}
-      <section>
-        <SectionHeader title="Featured Playlists" />
-        {featured && (
-          <div className="px-4">
-            <PlaylistCard playlist={featured} wide onPlay={() => playPlaylist(featured.id)} />
-          </div>
-        )}
-        {otherPlaylists.length > 0 && (
-          <div className="mt-3">
-            <Rail ariaLabel="More playlists">
-              {otherPlaylists.map((p) => (
-                <PlaylistCard key={p.id} playlist={p} onPlay={() => playPlaylist(p.id)} />
-              ))}
-            </Rail>
-          </div>
-        )}
-      </section>
+      {/* Featured Playlists — hidden until a playlists table exists in Supabase */}
+      {playlists.length > 0 && (
+        <section>
+          <SectionHeader title="Featured Playlists" />
+          {featured && (
+            <div className="px-4">
+              <PlaylistCard playlist={featured} wide onPlay={() => playPlaylist(featured.id)} />
+            </div>
+          )}
+          {otherPlaylists.length > 0 && (
+            <div className="mt-3">
+              <Rail ariaLabel="More playlists">
+                {otherPlaylists.map((p) => (
+                  <PlaylistCard key={p.id} playlist={p} onPlay={() => playPlaylist(p.id)} />
+                ))}
+              </Rail>
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Recommended Collections */}
       <section>

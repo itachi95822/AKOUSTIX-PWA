@@ -3,8 +3,8 @@ import { cx } from '@/utils/format'
 
 // ============================================================
 // AlbumArt — renders an album's cover in an era-aware frame.
-// Supports both CSS gradients (mock library) and real image
-// URLs (Supabase cover art). Optional gentle float.
+// Supports both CSS gradients (fallback) and real image URLs
+// (Supabase cover art from the `music` storage bucket).
 // ============================================================
 
 interface AlbumArtProps {

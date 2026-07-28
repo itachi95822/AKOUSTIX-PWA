@@ -1,18 +1,12 @@
 import type { Song } from '@/types'
 
 // ============================================================
-// Audio streaming service (PLACEHOLDER).
+// Audio streaming service — the seam for real audio playback.
 //
-// Today the player store simulates playback with a 1s ticker
-// because the mock library has no audio URLs. This module is
-// the seam where real audio goes in:
-//
-//   - Resolve a streamable URL from Firebase Storage, or
-//   - Drive a shared <audio> element and emit timeupdate /
-//     ended events back into the player store.
-//
-// The player store's public API (play/pause/next/seek/...) is
-// intentionally stable so this swap needs no UI changes.
+// The player store drives a shared <audio> element directly
+// from each song's `music_url` (Supabase `music` bucket). This
+// module is kept as a thin helper for resolving streamable URLs
+// and creating dedicated streams if needed later.
 // ============================================================
 
 export interface StreamHandle {
