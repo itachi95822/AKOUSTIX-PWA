@@ -2,6 +2,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
 import { BottomNav } from '@/components/navigation/BottomNav'
 import { MiniPlayer } from '@/components/player/MiniPlayer'
+import { PlayerToast } from '@/components/player/PlayerToast'
 import { InstallBanner } from '@/components/pwa/InstallPrompt'
 import { useLibraryStore } from '@/store/libraryStore'
 
@@ -33,6 +34,7 @@ export function AppShell() {
       <main id="akx-scroll" className="flex-1 overflow-y-auto era-scroll">
         <Outlet />
       </main>
+      <PlayerToast />
       <InstallBanner />
       {!hideMiniPlayer && <MiniPlayer />}
       <BottomNav />

@@ -15,9 +15,10 @@ export function QueueDrawer({ open, onClose }: { open: boolean; onClose: () => v
   const index = usePlayerStore((s) => s.index)
   const isPlaying = usePlayerStore((s) => s.isPlaying)
   const clearQueue = usePlayerStore((s) => s.clearQueue)
+  const jumpTo = usePlayerStore((s) => s.jumpTo)
 
-  const jumpTo = (i: number) => {
-    usePlayerStore.setState({ index: i, currentTime: 0, isPlaying: true })
+  const handleJump = (i: number) => {
+    jumpTo(i)
     onClose()
   }
 
@@ -72,21 +73,51 @@ export function QueueDrawer({ open, onClose }: { open: boolean; onClose: () => v
                   The queue is empty. Play something from Home, Search or Library.
                 </p>
               ) : (
-                <ul>
-                  {queue.map((song, i) => (
-                    <QueueRow
-                      key={`${song.id}-${i}`}
-                      songId={song.id}
-                      title={song.title}
-                      artist={song.artist}
-                      albumId={song.albumId}
-                      duration={song.durationSec}
-                      isCurrent={i === index}
-                      isPlaying={i === index && isPlaying}
-                      onJump={() => jumpTo(i)}
-                    />
-                  ))}
-                </ul>
+                <>
+                  {/* Now playing */}
+                  {queue[index] && (
+                    <div className="mb-2">
+                      <p className="px-2 pt-1 pb-1.5 text-[11px] font-mono uppercase tracking-widest text-era-text-muted">
+                        Now Playing
+                      </p>
+                      <QueueRow
+                        songId={queue[index].id}
+                        title={queue[index].title}
+                        artist={queue[index].artist}
+                        albumId={queue[index].albumId}
+                        duration={queue[index].durationSec}
+                        isCurrent
+                        isPlaying={isPlaying}
+                        onJump={() => handleJump(index)}
+                      />
+                    </div>
+                  )}
+                  {/* Up next — every other song in the queue */}
+                  {queue.length > 1 && (
+                    <div>
+                      <p className="px-2 pt-1 pb-1.5 text-[11px] font-mono uppercase tracking-widest text-era-text-muted">
+                        Up Next · {queue.length - 1}
+                      </p>
+                      <ul>
+                        {queue.map((song, i) => (
+                          i === index ? null : (
+                            <QueueRow
+                              key={`${song.id}-${i}`}
+                              songId={song.id}
+                              title={song.title}
+                              artist={song.artist}
+                              albumId={song.albumId}
+                              duration={song.durationSec}
+                              isCurrent={false}
+                              isPlaying={false}
+                              onJump={() => handleJump(i)}
+                            />
+                          )
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </motion.div>

@@ -153,7 +153,7 @@ export function HomeScreen() {
             type="button"
             whileTap={{ scale: 0.98 }}
             onClick={() => {
-              playSong(continueSong)
+              playSong(continueSong, songs)
               navigate('/now-playing')
             }}
             className="relative w-full h-52 rounded-eraLg overflow-hidden era-bevel flex items-end p-4 ring-1 ring-black/5"
