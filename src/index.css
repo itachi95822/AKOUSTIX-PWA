@@ -45,36 +45,36 @@
 }
 
 [data-era='cd'] {
-  --era-bg: #f4f4f2;
-  --era-surface: #ffffff;
-  --era-surface-alt: #ececec;
-  --era-raised: #1a1a1a;
-  --era-text: #1a1a1a;
-  --era-text-muted: #6b6b6b;
-  --era-accent: #ff6a00;
-  --era-accent-solid: #ff6a00;
-  --era-accent-contrast: #ffffff;
-  --era-border: rgba(0, 0, 0, 0.08);
-  --era-track: rgba(0, 0, 0, 0.1);
-  --era-walnut: #b8b8b8;
+  --era-bg: #070b12;
+  --era-surface: #0f1620;
+  --era-surface-alt: #182233;
+  --era-raised: #1e2d42;
+  --era-text: #dee5f0;
+  --era-text-muted: #64748b;
+  --era-accent: #5ba3ff;
+  --era-accent-solid: #5ba3ff;
+  --era-accent-contrast: #070b12;
+  --era-border: rgba(222, 229, 240, 0.07);
+  --era-track: rgba(222, 229, 240, 0.08);
+  --era-walnut: #1e2d42;
 
-  --era-radius: 4px;
-  --era-radius-sm: 2px;
-  --era-radius-lg: 10px;
+  --era-radius: 14px;
+  --era-radius-sm: 8px;
+  --era-radius-lg: 22px;
   --era-radius-pill: 999px;
 
-  --era-shadow: 0 18px 40px rgba(0, 0, 0, 0.1);
-  --era-shadow-soft: 0 6px 18px rgba(0, 0, 0, 0.06);
-  --era-shadow-inset: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+  --era-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+  --era-shadow-soft: 0 10px 28px rgba(0, 0, 0, 0.35);
+  --era-shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 
   --era-font-display: 'Outfit', system-ui, sans-serif;
   --era-font-body: 'Inter', system-ui, sans-serif;
-  --era-font-mono: 'Inter', system-ui, sans-serif;
+  --era-font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
 
   --era-grain: none;
   --era-noise-opacity: 0;
   --era-bevel: none;
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 [data-era='computer'] {
@@ -134,7 +134,7 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     overscroll-behavior-y: none;
-    transition: background-color 600ms ease, color 600ms ease;
+    transition: background-color 300ms ease, color 300ms ease;
   }
 
   /* Computer era bumps the pixel font to a readable size */
@@ -177,6 +177,104 @@
   /* Beveled button (computer era renders a real bevel, others a soft shadow) */
   .era-bevel {
     box-shadow: var(--era-bevel);
+  }
+
+  /* ---- Premium material + lighting utilities (cassette era) ---- */
+
+  .mat-walnut {
+    background:
+      radial-gradient(120% 80% at 30% 0%, rgba(243,232,207,0.06), transparent 60%),
+      linear-gradient(160deg, #3a322a 0%, #2b2520 55%, #211c17 100%);
+  }
+
+  .mat-plastic-cream {
+    background: linear-gradient(180deg, #f3e8cf 0%, #e6d6ad 55%, #d2bf90 100%);
+  }
+
+  .fx-sheen {
+    position: relative;
+    overflow: hidden;
+  }
+  .fx-sheen.is-sheen::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 40%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    transform: translateX(-150%) rotate(8deg);
+    pointer-events: none;
+    animation: sheen 2.4s ease-in-out infinite;
+  }
+
+  .fx-ambient::before {
+    content: '';
+    position: absolute;
+    inset: -10% -10% 30%;
+    pointer-events: none;
+    background: radial-gradient(60% 50% at 50% 0%, var(--era-accent), transparent 70%);
+    opacity: 0.18;
+    filter: blur(24px);
+  }
+
+  /* ---- Premium material + lighting utilities (cd era) ---- */
+
+  .mat-gunmetal {
+    background:
+      radial-gradient(120% 80% at 25% 0%, rgba(91,163,255,0.04), transparent 60%),
+      linear-gradient(165deg, #141e2c 0%, #0d1520 50%, #080d16 100%);
+  }
+
+  .mat-glass {
+    background: linear-gradient(
+      170deg,
+      rgba(15,22,32,0.88) 0%,
+      rgba(20,32,48,0.85) 40%,
+      rgba(8,13,22,0.92) 100%
+    );
+    backdrop-filter: blur(2px);
+  }
+
+  .mat-glass::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+      135deg,
+      rgba(255,255,255,0.06) 0%,
+      transparent 40%,
+      transparent 60%,
+      rgba(91,163,255,0.03) 100%
+    );
+    pointer-events: none;
+  }
+
+  .cd-water-ripple {
+    position: relative;
+    overflow: hidden;
+  }
+  .cd-water-ripple::before,
+  .cd-water-ripple::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+  .cd-water-ripple::before {
+    border: 1px solid rgba(91,163,255,0.06);
+    animation: waterRipple 5s ease-out infinite;
+  }
+  .cd-water-ripple::after {
+    border: 1px solid rgba(91,163,255,0.04);
+    animation: waterRipple2 7s ease-out infinite 1.5s;
+  }
+
+  .cd-moon-sweep {
+    background-size: 200% 100%;
+    animation: moonSweep 12s ease-in-out infinite;
   }
 
   /* Custom era scrollbar */
@@ -269,7 +367,7 @@
   min-height: 100dvh;
   position: relative;
   background-color: var(--era-bg);
-  transition: background-color 600ms ease;
+  transition: background-color 300ms ease;
 }
 @media (min-width: 640px) {
   .akx-shell {
