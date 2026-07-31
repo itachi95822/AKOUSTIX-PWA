@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ChevronRight, Info, Mic2, Gauge, MessageSquareHeart, Check, Download, Share } from 'lucide-react'
+import { ChevronRight, Info, Mic2, Gauge, MessageSquareHeart, Check, Download, Share, Mail, Phone, ArrowUpRight } from 'lucide-react'
 import { BrandMark } from '@/components/brand/BrandMark'
 import { ScreenHeader } from '@/components/ui/Primitives'
 import { useEraStore, ERAS, ERA_ORDER } from '@/eras/EraProvider'
@@ -129,9 +129,26 @@ export function SettingsScreen() {
               Thanks for listening on AKOUSTIX.
             </p>
             <p className="text-[13px] text-era-text-muted font-body mt-1">
-              Feedback channels will open here once the backend is connected. For now, your library
-              and eras are all yours.
+              Found a bug, have a request, or just want to say hi? Reach out — we read everything.
             </p>
+            <div className="mt-3 space-y-2">
+              <a
+                href="mailto:itachigamer95822@gmail.com"
+                className="flex items-center gap-3 px-3 h-12 rounded-era era-bevel bg-era-surface text-era-text hover:bg-era-surface-alt transition-colors"
+              >
+                <Mail size={16} className="text-era-accent-solid shrink-0" />
+                <span className="font-body text-[14px] min-w-0 truncate">itachigamer95822@gmail.com</span>
+                <ArrowUpRight size={15} className="ml-auto text-era-text-muted shrink-0" />
+              </a>
+              <a
+                href="tel:+918178038772"
+                className="flex items-center gap-3 px-3 h-12 rounded-era era-bevel bg-era-surface text-era-text hover:bg-era-surface-alt transition-colors"
+              >
+                <Phone size={16} className="text-era-accent-solid shrink-0" />
+                <span className="font-body text-[14px] min-w-0 truncate">+91 81780 38772</span>
+                <ArrowUpRight size={15} className="ml-auto text-era-text-muted shrink-0" />
+              </a>
+            </div>
             <button
               onClick={() => setFeedbackOpen(false)}
               className="mt-3 h-9 px-4 rounded-era era-bevel bg-era-surface text-era-text font-body text-[14px]"

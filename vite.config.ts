@@ -9,7 +9,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'robots.txt', 'apple-icon-180.png'],
+      includeAssets: ['favicon.png', 'robots.txt', 'apple-icon-180.png'],
       manifest: {
         name: 'AKOUSTIX',
         short_name: 'AKOUSTIX',
@@ -17,8 +17,8 @@ export default defineConfig({
         lang: 'en',
         dir: 'ltr',
         categories: ['music', 'entertainment', 'lifestyle'],
-        theme_color: '#1a1714',
-        background_color: '#1a1714',
+        theme_color: '#0a1628',
+        background_color: '#0a1628',
         display: 'standalone',
         display_override: ['standalone', 'minimal-ui'],
         orientation: 'portrait',

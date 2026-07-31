@@ -10,37 +10,81 @@ import { usePlayerStore } from '@/store/playerStore'
 import type { EraPlayerProps } from '../parts'
 import type { Album, Song } from '@/types'
 
-function seekFromEvent(e: React.MouseEvent<HTMLDivElement>, duration: number, onSeek: (s: number) => void) {
-  const rect = e.currentTarget.getBoundingClientRect()
-  const pct = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width))
-  onSeek(pct * duration)
-}
+function TimelineSlider({
+  currentTime,
+  duration,
+  onSeek
+}: {
+  currentTime: number
+  duration: number
+  onSeek: (s: number) => void
+}) {
+  const trackRef = useRef<HTMLDivElement>(null)
+  const draggingRef = useRef(false)
+  const [dragging, setDragging] = useState(false)
+  const [dragPct, setDragPct] = useState<number | null>(null)
 
-const RIPPLE_COUNT = 3
-const RIPPLE_COLORS = [
-  'rgba(91,163,255,0.06)',
-  'rgba(140,190,255,0.04)',
-  'rgba(91,163,255,0.03)'
-]
+  const pct = dragging && dragPct !== null ? dragPct : duration ? (currentTime / duration) * 100 : 0
+  const shownTime = dragging && dragPct !== null ? (dragPct / 100) * duration : currentTime
 
-function WaterRipples() {
+  const seekFromClientX = (clientX: number) => {
+    const el = trackRef.current
+    if (!el || !duration) return
+    const rect = el.getBoundingClientRect()
+    const next = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width))
+    setDragPct(next * 100)
+    onSeek(next * duration)
+  }
+
+  const endDrag = () => {
+    draggingRef.current = false
+    setDragging(false)
+    setDragPct(null)
+  }
+
   return (
-    <div className="absolute inset-0 rounded-[inherit] pointer-events-none overflow-hidden">
-      {Array.from({ length: RIPPLE_COUNT }).map((_, i) => (
+    <div className="w-full mt-4 px-1">
+      <div className="flex items-center gap-2">
+        <span className="text-[10px] font-mono tabular-nums tracking-wider min-w-[2.5rem] text-right" style={{ color: 'rgba(222,229,240,0.3)' }}>
+          {formatTime(shownTime)}
+        </span>
         <div
-          key={i}
-          className="absolute rounded-full"
-          style={{
-            left: `${30 + i * 20}%`,
-            top: `${40 + i * 12}%`,
-            width: `${80 - i * 15}%`,
-            height: `${80 - i * 15}%`,
-            border: `1px solid ${RIPPLE_COLORS[i]}`,
-            animation: `waterRipple ${5 + i * 2}s ease-out infinite`,
-            animationDelay: `${i * 1.8}s`
+          ref={trackRef}
+          className="relative flex-1 h-1.5 rounded-full cursor-pointer group select-none"
+          style={{ background: 'rgba(222,229,240,0.06)', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.3)', touchAction: 'none' }}
+          onPointerDown={(e) => {
+            draggingRef.current = true
+            try {
+              e.currentTarget.setPointerCapture(e.pointerId)
+            } catch {
+              // Pointer already released — capture is optional.
+            }
+            setDragging(true)
+            seekFromClientX(e.clientX)
           }}
-        />
-      ))}
+          onPointerMove={(e) => {
+            if (draggingRef.current) seekFromClientX(e.clientX)
+          }}
+          onPointerUp={endDrag}
+          onPointerCancel={endDrag}
+        >
+          <div
+            className="absolute inset-y-0 left-0 rounded-full"
+            style={{
+              width: `${pct}%`,
+              background: 'linear-gradient(90deg, #3a7bd5, #5ba3ff)',
+              boxShadow: '0 0 6px rgba(91,163,255,0.25)'
+            }}
+          />
+          <div
+            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            style={{ left: `${pct}%`, background: '#5ba3ff', boxShadow: '0 0 6px rgba(91,163,255,0.4)' }}
+          />
+        </div>
+        <span className="text-[10px] font-mono tabular-nums tracking-wider min-w-[2.5rem]" style={{ color: 'rgba(222,229,240,0.3)' }}>
+          {formatTime(duration)}
+        </span>
+      </div>
     </div>
   )
 }
@@ -64,8 +108,8 @@ function RainbowRing() {
       className="absolute inset-0 rounded-full pointer-events-none"
       style={{
         background: 'conic-gradient(from 0deg, rgba(91,163,255,0.15), rgba(180,140,255,0.12), rgba(140,200,255,0.15), rgba(100,180,220,0.12), rgba(91,163,255,0.15))',
-        mask: 'radial-gradient(circle at 50% 50%, transparent 46%, black 48%, black 52%, transparent 54%)',
-        WebkitMask: 'radial-gradient(circle at 50% 50%, transparent 46%, black 48%, black 52%, transparent 54%)'
+        mask: 'radial-gradient(circle at 50% 50%, transparent 84%, black 86%, black 95%, transparent 97%)',
+        WebkitMask: 'radial-gradient(circle at 50% 50%, transparent 84%, black 86%, black 95%, transparent 97%)'
       }}
     />
   )
@@ -80,6 +124,7 @@ function CDDisc({
   spinStyle: React.CSSProperties
   isEjecting: boolean
 }) {
+  const isImg = /^https?:\/\//i.test(cover) || cover.startsWith('/')
   return (
     <div
       className={cx('w-full h-full rounded-full relative', isEjecting ? '' : 'animate-disc-spin')}
@@ -96,21 +141,27 @@ function CDDisc({
         }}
       />
       <RainbowRing />
+      {/* Printed label — the currently playing song's actual cover art */}
       <div
         className="absolute rounded-full overflow-hidden"
         style={{
-          left: '20%',
-          top: '20%',
-          width: '60%',
-          height: '60%',
-          background: cover,
+          left: '17%',
+          top: '17%',
+          width: '66%',
+          height: '66%',
+          background: isImg ? undefined : cover,
           boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08), 0 2px 8px rgba(0,0,0,0.3)'
         }}
       >
-        <div
-          className="absolute inset-0"
-          style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 50%)' }}
-        />
+        {isImg && (
+          <img
+            src={cover}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        )}
       </div>
       <div
         className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
@@ -204,14 +255,12 @@ function PlaybackArm({
 function CDDrive({
   cover,
   isPlaying,
-  onTogglePlay,
   loadState,
   discKey,
   spinStyle
 }: {
   cover: string
   isPlaying: boolean
-  onTogglePlay: () => void
   loadState: 'empty' | 'loading' | 'loaded' | 'ejecting'
   discKey: string
   spinStyle: React.CSSProperties
@@ -250,21 +299,6 @@ function CDDrive({
               </motion.div>
             )}
           </AnimatePresence>
-          <div className="absolute inset-0 mat-glass" style={{ borderRadius: '14px' }}>
-            <WaterRipples />
-          </div>
-          <button
-            aria-label={isPlaying ? 'Pause' : 'Play'}
-            onClick={onTogglePlay}
-            className="absolute inset-0 rounded-[14px] z-10 flex items-center justify-center focus:outline-none group"
-          >
-            <div
-              className="rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center"
-              style={{ width: 64, height: 64, background: 'rgba(5,10,18,0.7)', backdropFilter: 'blur(4px)' }}
-            >
-              {isPlaying ? <Pause size={28} className="text-[#dee5f0] ml-0" /> : <Play size={28} className="text-[#dee5f0] ml-1" />}
-            </div>
-          </button>
         </div>
         <div className="flex items-center justify-between mt-3 px-1">
           <div className="flex items-center gap-2">
@@ -293,21 +327,11 @@ function CDDrive({
 
 function InfoPanel({
   song,
-  albumTitle,
-  currentTime,
-  duration,
-  onSeek,
-  pct
+  albumTitle
 }: {
   song: Song
   albumTitle: string
-  currentTime: number
-  duration: number
-  onSeek: (s: number) => void
-  pct: number
 }) {
-  const remaining = duration - currentTime
-
   return (
     <div className="w-full mt-4">
       <div
@@ -323,32 +347,6 @@ function InfoPanel({
         <p className="text-[12px] font-light tracking-wide truncate mt-0.5" style={{ color: 'rgba(222,229,240,0.5)' }}>
           {song.artist}{albumTitle ? ` — ${albumTitle}` : ''}
         </p>
-        <div className="flex items-center gap-3 mt-2.5">
-          <span className="text-[11px] font-mono tabular-nums tracking-wider min-w-[3rem]" style={{ color: 'rgba(222,229,240,0.45)' }}>
-            {formatTime(currentTime)}
-          </span>
-          <div
-            className="relative flex-1 h-1 rounded-full cursor-pointer group"
-            style={{ background: 'rgba(222,229,240,0.06)' }}
-            onClick={(e) => seekFromEvent(e, duration, onSeek)}
-          >
-            <div
-              className="absolute inset-y-0 left-0 rounded-full"
-              style={{
-                width: `${pct}%`,
-                background: 'linear-gradient(90deg, #5ba3ff, rgba(140,200,255,0.6))',
-                boxShadow: '0 0 6px rgba(91,163,255,0.3)'
-              }}
-            />
-            <div
-              className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-              style={{ left: `${pct}%`, background: '#5ba3ff', boxShadow: '0 0 6px rgba(91,163,255,0.4)' }}
-            />
-          </div>
-          <span className="text-[11px] font-mono tabular-nums tracking-wider min-w-[3rem] text-right" style={{ color: 'rgba(222,229,240,0.45)' }}>
-            -{formatTime(remaining)}
-          </span>
-        </div>
       </div>
     </div>
   )
@@ -395,7 +393,7 @@ function TransportControls({ onPrev, onTogglePlay, onNext, isPlaying }: {
   isPlaying: boolean
 }) {
   return (
-    <div className="flex items-center justify-center gap-3 mt-4">
+    <div className="flex items-center justify-center gap-4 mt-5">
       <HwButton label="Previous" onClick={onPrev} className="w-12 h-12">
         <SkipBack size={18} />
       </HwButton>
@@ -435,7 +433,7 @@ function SecondarySection({
   const RepeatIcon = repeat === 'one' ? Repeat1 : Repeat
 
   return (
-    <div className="flex items-center justify-center gap-2 mt-2.5">
+    <div className="flex items-center justify-center gap-3 mt-4">
       <HwButton label="Shuffle" active={shuffle} onClick={onToggleShuffle} className="w-10 h-10">
         <Shuffle size={16} />
       </HwButton>
@@ -455,65 +453,53 @@ function SecondarySection({
   )
 }
 
-function StackedAlbumCard({ album, song, onPlay, index, count }: {
+function CollectionCard({ album, song, onPlay }: {
   album: Album | undefined
   song: Song
   onPlay: (s: Song) => void
-  index: number
-  count: number
 }) {
-  if (index >= count) return null
-  const rotate = index % 2 === 0 ? -1.2 : 1.2
-  const z = 10 + index
-  const ml = index === 0 ? 0 : -28
   const cover = album?.cover ?? 'linear-gradient(135deg, #1a2535, #0c1522)'
   const isImg = /^https?:\/\//i.test(cover) || cover.startsWith('/')
 
   return (
-    <motion.div
-      className="snap-start shrink-0 relative"
-      style={{ zIndex: z, marginLeft: ml }}
-      initial={{ opacity: 0, y: 12 }}
+    <motion.button
+      onClick={() => onPlay(song)}
+      className="text-left group focus:outline-none"
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.035, type: 'spring', stiffness: 200, damping: 22 }}
-      whileHover={{ scale: 1.06, y: -8, rotate: 0, transition: { type: 'spring', stiffness: 280, damping: 18 } }}
-      whileTap={{ scale: 0.96 }}
+      transition={{ type: 'spring', stiffness: 220, damping: 22 }}
+      whileHover={{ y: -4 }}
+      whileTap={{ scale: 0.97 }}
     >
-      <button
-        onClick={() => onPlay(song)}
-        className="rounded-xl overflow-hidden text-left group focus:outline-none"
-        style={{ transform: `rotate(${rotate}deg)`, width: 140, transition: 'transform 0.35s ease' }}
+      <div
+        className="relative w-full overflow-hidden rounded-xl"
+        style={{
+          aspectRatio: '1',
+          background: isImg ? undefined : cover,
+          boxShadow: '0 4px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04)'
+        }}
       >
-        <div
-          className="relative w-full overflow-hidden rounded-xl"
-          style={{
-            height: 140,
-            background: cover,
-            boxShadow: '0 4px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04)'
-          }}
-        >
-          {isImg && (
-            <img
-              src={cover}
-              alt={album?.title ?? song.title}
-              loading="lazy"
-              decoding="async"
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <div className="rounded-full flex items-center justify-center" style={{ width: 36, height: 36, background: 'rgba(5,10,18,0.7)', backdropFilter: 'blur(4px)' }}>
-              <Play size={16} className="text-[#dee5f0] ml-0.5" />
-            </div>
+        {isImg && (
+          <img
+            src={cover}
+            alt={album?.title ?? song.title}
+            loading="lazy"
+            decoding="async"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="rounded-full flex items-center justify-center" style={{ width: 34, height: 34, background: 'rgba(5,10,18,0.7)', backdropFilter: 'blur(4px)' }}>
+            <Play size={15} className="text-[#dee5f0] ml-0.5" />
           </div>
         </div>
-        <div className="mt-1.5 px-0.5">
-          <p className="text-[12px] font-medium truncate" style={{ color: '#dee5f0' }}>{album?.title || song.title}</p>
-          <p className="text-[10px] truncate mt-0.5" style={{ color: 'rgba(222,229,240,0.45)' }}>{song.artist}</p>
-        </div>
-      </button>
-    </motion.div>
+      </div>
+      <div className="mt-1.5 px-0.5">
+        <p className="text-[11px] font-medium truncate" style={{ color: '#dee5f0' }}>{album?.title || song.title}</p>
+        <p className="text-[10px] truncate mt-0.5" style={{ color: 'rgba(222,229,240,0.45)' }}>{song.artist}</p>
+      </div>
+    </motion.button>
   )
 }
 
@@ -523,20 +509,20 @@ function AlbumBrowse({ onPlaySong }: { onPlaySong: (s: Song) => void }) {
 
   if (!songs.length) return null
 
-  const displayCount = Math.min(songs.length, 10)
+  const displayCount = Math.min(songs.length, 12)
 
   return (
-    <div className="w-full mt-5">
+    <div className="w-full mt-6">
       <div className="flex items-center justify-between mb-3 px-0.5">
         <h3 className="text-[13px] font-medium tracking-wider uppercase" style={{ color: 'rgba(222,229,240,0.4)' }}>Your Collection</h3>
         <span className="text-[10px] font-mono" style={{ color: 'rgba(222,229,240,0.2)' }}>{songs.length} tracks</span>
       </div>
-      <div className="flex overflow-x-auto pb-2 snap-x snap-mandatory no-scrollbar">
+      <div className="grid grid-cols-3 gap-4">
         {Array.from({ length: displayCount }).map((_, i) => {
           const s = songs[i]
           if (!s) return null
           const album = albums.find((a) => a.id === s.albumId)
-          return <StackedAlbumCard key={s.id} album={album} song={s} onPlay={onPlaySong} index={i} count={displayCount} />
+          return <CollectionCard key={s.id} album={album} song={s} onPlay={onPlaySong} />
         })}
       </div>
     </div>
@@ -666,14 +652,17 @@ export function CDPlayer(props: EraPlayerProps) {
         <div className="mat-gunmetal px-4 pt-4 pb-5">
           <MoonSweep />
 
-          <CDDrive cover={cover} isPlaying={isPlaying} onTogglePlay={onTogglePlay} loadState={loadState} discKey={song.id} spinStyle={spinStyle} />
+          <CDDrive cover={cover} isPlaying={isPlaying} loadState={loadState} discKey={song.id} spinStyle={spinStyle} />
 
           {/* Playback arm — positioned to overlap the drive window */}
           <div className="relative mx-auto" style={{ width: 260, marginTop: -220 }}>
             <PlaybackArm armTarget={armTarget} isPlaying={isPlaying} />
           </div>
 
-          <InfoPanel song={song} albumTitle={albumTitle} currentTime={currentTime} duration={duration} onSeek={onSeek} pct={pct} />
+          <InfoPanel song={song} albumTitle={albumTitle} />
+
+          {/* Timeline slider */}
+          <TimelineSlider currentTime={currentTime} duration={duration} onSeek={onSeek} />
 
           <TransportControls onPrev={onPrev} onTogglePlay={onTogglePlay} onNext={onNext} isPlaying={isPlaying} />
 
@@ -683,36 +672,6 @@ export function CDPlayer(props: EraPlayerProps) {
             repeat={repeat} onCycleRepeat={onCycleRepeat}
             shuffle={shuffle} onToggleShuffle={onToggleShuffle}
           />
-
-          {/* Timeline slider */}
-          <div className="w-full mt-3 px-1">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono tabular-nums tracking-wider min-w-[2.5rem] text-right" style={{ color: 'rgba(222,229,240,0.3)' }}>
-                {formatTime(currentTime)}
-              </span>
-              <div
-                className="relative flex-1 h-1.5 rounded-full cursor-pointer group"
-                style={{ background: 'rgba(222,229,240,0.06)', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.3)' }}
-                onClick={(e) => seekFromEvent(e, duration, onSeek)}
-              >
-                <div
-                  className="absolute inset-y-0 left-0 rounded-full"
-                  style={{
-                    width: `${pct}%`,
-                    background: 'linear-gradient(90deg, #3a7bd5, #5ba3ff)',
-                    boxShadow: '0 0 6px rgba(91,163,255,0.25)'
-                  }}
-                />
-                <div
-                  className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ left: `${pct}%`, background: '#5ba3ff', boxShadow: '0 0 6px rgba(91,163,255,0.4)' }}
-                />
-              </div>
-              <span className="text-[10px] font-mono tabular-nums tracking-wider min-w-[2.5rem]" style={{ color: 'rgba(222,229,240,0.3)' }}>
-                {formatTime(duration)}
-              </span>
-            </div>
-          </div>
 
           <AlbumBrowse onPlaySong={playSong} />
         </div>

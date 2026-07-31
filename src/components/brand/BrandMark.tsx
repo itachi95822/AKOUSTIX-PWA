@@ -2,9 +2,9 @@ import { useEraStore } from '@/eras/EraProvider'
 import { cx } from '@/utils/format'
 
 // ============================================================
-// BrandMark — the AKOUSTIX wordmark + tagline.
-// Restyles subtly per era through the era font + letter-spacing
-// utilities. Shown at the top of Home + Settings.
+// BrandMark — the AKOUSTIX logo tile + tagline.
+// Shown at the top of Home + Settings. The tile carries a
+// subtle era-aware ring so it reads on light and dark surfaces.
 // ============================================================
 
 export function BrandMark({
@@ -17,31 +17,33 @@ export function BrandMark({
   const era = useEraStore((s) => s.era)
 
   const sizes = {
-    sm: 'text-2xl',
-    md: 'text-3xl',
-    lg: 'text-5xl'
+    sm: 'w-9 h-9',
+    md: 'w-12 h-12',
+    lg: 'w-24 h-24'
   } as const
 
   return (
-    <div className="leading-none">
-      <h1
+    <div className="flex items-center gap-3 min-w-0">
+      <img
+        src="/akoustix-logo.png"
+        alt="AKOUSTIX"
+        draggable={false}
         className={cx(
-          'font-display text-era-text tracking-tight',
           sizes[size],
-          era === 'cd' && 'tracking-[0.3em] font-light',
-          era === 'computer' && 'tracking-wider'
+          'shrink-0 object-cover rounded-[22%] shadow-era-soft',
+          era === 'cd' ? 'ring-1 ring-white/15' : 'ring-1 ring-black/10'
         )}
-      >
-        AKOUSTIX
-      </h1>
+      />
       {showTagline && (
         <p
           className={cx(
-            'mt-1 text-[11px] font-mono text-era-text-muted uppercase',
+            'text-[11px] font-mono text-era-text-muted uppercase leading-snug',
             era === 'cd' && 'tracking-[0.25em] font-light'
           )}
         >
-          Every Song Has A Memory.
+          Every Song Has
+          <br />
+          A Memory.
         </p>
       )}
     </div>
