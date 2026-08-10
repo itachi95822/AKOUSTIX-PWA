@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import {
-  SkipBack, SkipForward, Rewind, FastForward,
+  Rewind, FastForward,
   Shuffle, Repeat, Repeat1, Heart, Mic2, ListMusic, Images
 } from 'lucide-react'
 import { formatTime, cx } from '@/utils/format'
@@ -59,8 +59,6 @@ export function CassettePlayer(props: EraPlayerProps) {
     isFavourite,
     onSeek,
     onTogglePlay,
-    onNext,
-    onPrev,
     onToggleShuffle,
     onCycleRepeat,
     onToggleFavourite,
@@ -278,9 +276,6 @@ export function CassettePlayer(props: EraPlayerProps) {
         {/* ===== Transport buttons ===== */}
         <div className="px-4 py-3">
           <div className="flex items-center justify-center gap-2">
-            <TransportButton label="Previous" size={42} onClick={() => handleClick(onPrev)}>
-              <SkipBack size={18} fill="currentColor" />
-            </TransportButton>
             <TransportButton
               label="Rewind"
               size={38}
@@ -301,9 +296,6 @@ export function CassettePlayer(props: EraPlayerProps) {
               onPointerLeave={stopSeek}
             >
               <FastForward size={16} />
-            </TransportButton>
-            <TransportButton label="Next" size={42} onClick={() => handleClick(onNext)}>
-              <SkipForward size={18} fill="currentColor" />
             </TransportButton>
           </div>
         </div>

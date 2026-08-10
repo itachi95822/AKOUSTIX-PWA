@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { SkipBack, SkipForward, X, Minus, Square } from 'lucide-react'
+import { X, Minus, Square } from 'lucide-react'
 import { formatTime, cx } from '@/utils/format'
 import { ControlButton, PlayPauseButton, SecondaryActions, type EraPlayerProps } from '../parts'
 
@@ -28,8 +28,6 @@ export function ComputerPlayer(props: EraPlayerProps) {
     isFavourite,
     onSeek,
     onTogglePlay,
-    onNext,
-    onPrev,
     onToggleShuffle,
     onCycleRepeat,
     onToggleFavourite,
@@ -150,16 +148,10 @@ export function ComputerPlayer(props: EraPlayerProps) {
 
           {/* Transport */}
           <div className="mt-4 flex items-center justify-center gap-2">
-            <WinCtrlBtn label="Previous" onClick={onPrev}>
-              <SkipBack size={18} fill="currentColor" />
-            </WinCtrlBtn>
             <WinCtrlBtn label="Play/Pause" primary onClick={onTogglePlay} className="w-16 h-12">
               <span className="font-display text-[20px] leading-none">
                 {isPlaying ? '❚❚' : '▶'}
               </span>
-            </WinCtrlBtn>
-            <WinCtrlBtn label="Next" onClick={onNext}>
-              <SkipForward size={18} fill="currentColor" />
             </WinCtrlBtn>
           </div>
 

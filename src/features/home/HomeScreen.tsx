@@ -11,6 +11,8 @@ import { AlbumArt } from '@/components/ui/AlbumArt'
 import { useEraStore, ERAS } from '@/eras/EraProvider'
 import { useLibraryStore, useAlbumById, useSongById } from '@/store/libraryStore'
 import { usePlayerStore } from '@/store/playerStore'
+import { CassetteHome } from './CassetteHome'
+import { CdHome } from './CdHome'
 
 // ============================================================
 // Home — the landing tab.
@@ -91,6 +93,12 @@ export function HomeScreen() {
     playQueue(plSongs, startIndex)
     navigate('/now-playing')
   }
+
+  // Era-specific landing screens — the Cassette and CD eras get a
+  // physical, tactile collection instead of the shared rails. The
+  // Computer era keeps the classic Home below.
+  if (era === 'cassette') return <CassetteHome />
+  if (era === 'cd') return <CdHome />
 
   if (status === 'loading' || status === 'idle') {
     return (

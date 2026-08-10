@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  SkipBack, SkipForward, Shuffle, Repeat, Repeat1,
+  Shuffle, Repeat, Repeat1,
   Heart, Mic2, ListMusic, Images, Play, Pause
 } from 'lucide-react'
 import { formatTime, cx } from '@/utils/format'
@@ -386,17 +386,12 @@ function HwButton({
   )
 }
 
-function TransportControls({ onPrev, onTogglePlay, onNext, isPlaying }: {
-  onPrev: () => void
+function TransportControls({ onTogglePlay, isPlaying }: {
   onTogglePlay: () => void
-  onNext: () => void
   isPlaying: boolean
 }) {
   return (
     <div className="flex items-center justify-center gap-4 mt-5">
-      <HwButton label="Previous" onClick={onPrev} className="w-12 h-12">
-        <SkipBack size={18} />
-      </HwButton>
       <button
         aria-label={isPlaying ? 'Pause' : 'Play'}
         onClick={onTogglePlay}
@@ -411,9 +406,6 @@ function TransportControls({ onPrev, onTogglePlay, onNext, isPlaying }: {
       >
         {isPlaying ? <Pause size={26} /> : <Play size={26} className="ml-0.5" />}
       </button>
-      <HwButton label="Next" onClick={onNext} className="w-12 h-12">
-        <SkipForward size={18} />
-      </HwButton>
     </div>
   )
 }
@@ -542,7 +534,7 @@ export function CDPlayer(props: EraPlayerProps) {
   const {
     song, album, isPlaying, currentTime, duration,
     repeat, shuffle, isFavourite,
-    onSeek, onTogglePlay, onNext, onPrev,
+    onSeek, onTogglePlay,
     onToggleShuffle, onCycleRepeat, onToggleFavourite,
     onOpenLyrics, onOpenQueue, hasMemory, onOpenMemory
   } = props
@@ -670,7 +662,7 @@ export function CDPlayer(props: EraPlayerProps) {
           {/* Timeline slider */}
           <TimelineSlider currentTime={currentTime} duration={duration} onSeek={onSeek} />
 
-          <TransportControls onPrev={onPrev} onTogglePlay={onTogglePlay} onNext={onNext} isPlaying={isPlaying} />
+          <TransportControls onTogglePlay={onTogglePlay} isPlaying={isPlaying} />
 
           <SecondarySection
             isFavourite={isFavourite} onToggleFavourite={onToggleFavourite}

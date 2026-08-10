@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Heart, Images, ListMusic, Mic2, Shuffle, SkipBack, SkipForward, Play, Pause, Repeat, Repeat1 } from 'lucide-react'
+import { Heart, Images, ListMusic, Mic2, Shuffle, Play, Pause, Repeat, Repeat1 } from 'lucide-react'
 import type { Album, RepeatMode, Song } from '@/types'
 import { cx } from '@/utils/format'
 
@@ -150,5 +150,3 @@ export function SecondaryActions({
     </div>
   )
 }
-
-export { SkipBack, SkipForward }
