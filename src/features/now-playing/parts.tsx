@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Heart, ListMusic, Mic2, Shuffle, SkipBack, SkipForward, Play, Pause, Repeat, Repeat1 } from 'lucide-react'
+import { Heart, Images, ListMusic, Mic2, Shuffle, SkipBack, SkipForward, Play, Pause, Repeat, Repeat1 } from 'lucide-react'
 import type { Album, RepeatMode, Song } from '@/types'
 import { cx } from '@/utils/format'
 
@@ -27,6 +27,8 @@ export interface EraPlayerProps {
   onToggleFavourite: () => void
   onOpenLyrics: () => void
   onOpenQueue: () => void
+  hasMemory: boolean
+  onOpenMemory: () => void
 }
 
 export function ControlButton({
@@ -99,7 +101,9 @@ export function SecondaryActions({
   repeat,
   onCycleRepeat,
   shuffle,
-  onToggleShuffle
+  onToggleShuffle,
+  hasMemory,
+  onOpenMemory
 }: {
   isFavourite: boolean
   onToggleFavourite: () => void
@@ -109,6 +113,8 @@ export function SecondaryActions({
   onCycleRepeat: () => void
   shuffle: boolean
   onToggleShuffle: () => void
+  hasMemory: boolean
+  onOpenMemory: () => void
 }) {
   const RepeatIcon = repeat === 'one' ? Repeat1 : Repeat
   return (
@@ -131,6 +137,9 @@ export function SecondaryActions({
         className="w-10 h-10"
       >
         <Heart size={18} fill={isFavourite ? 'currentColor' : 'none'} />
+      </ControlButton>
+      <ControlButton label="Memory" active={hasMemory} onClick={onOpenMemory} className="w-10 h-10">
+        <Images size={18} />
       </ControlButton>
       <ControlButton label="Lyrics" onClick={onOpenLyrics} className="w-10 h-10">
         <Mic2 size={18} />

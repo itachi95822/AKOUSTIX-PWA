@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronLeft, Music } from 'lucide-react'
 import { useEraStore, ERAS } from '@/eras/EraProvider'
 import { useCurrentSong, usePlayerStore } from '@/store/playerStore'
+import { useMemoryStore } from '@/store/memoryStore'
 import { useAlbumById } from '@/store/libraryStore'
 import { EmptyState } from '@/components/ui/Primitives'
 import { CassettePlayer } from './players/CassettePlayer'
@@ -11,6 +12,8 @@ import { CDPlayer } from './players/CDPlayer'
 import { ComputerPlayer } from './players/ComputerPlayer'
 import { QueueDrawer } from './QueueDrawer'
 import { LyricsPanel } from './LyricsPanel'
+import { MemoryEditor } from './MemoryEditor'
+import { MemorySlideshow } from './MemorySlideshow'
 import type { EraPlayerProps } from './parts'
 
 // ============================================================
@@ -37,8 +40,21 @@ export function NowPlayingScreen() {
   const toggleShuffle = usePlayerStore((s) => s.toggleShuffle)
   const cycleRepeat = usePlayerStore((s) => s.cycleRepeat)
   const toggleFavourite = usePlayerStore((s) => s.toggleFavourite)
+  const memory = useMemoryStore((s) => (song ? s.memories[song.id] : undefined))
 
   const [panel, setPanel] = useState<'none' | 'queue' | 'lyrics'>('none')
+  const [memoryView, setMemoryView] = useState<'none' | 'editor' | 'slideshow'>('none')
+
+  const openMemory = () => {
+    if (!song) return
+    if (useMemoryStore.getState().hasMemory(song.id)) setMemoryView('slideshow')
+    else setMemoryView('editor')
+  }
+
+  // A Memory belongs to a single song — close any open overlay on track change.
+  useEffect(() => {
+    setMemoryView('none')
+  }, [song?.id])
 
   if (!song) {
     return (
@@ -74,7 +90,9 @@ export function NowPlayingScreen() {
     onCycleRepeat: cycleRepeat,
     onToggleFavourite: () => toggleFavourite(song.id),
     onOpenLyrics: () => setPanel('lyrics'),
-    onOpenQueue: () => setPanel('queue')
+    onOpenQueue: () => setPanel('queue'),
+    hasMemory: Boolean(memory?.photos.length),
+    onOpenMemory: openMemory
   }
 
   const Player = era === 'cassette' ? CassettePlayer : era === 'cd' ? CDPlayer : ComputerPlayer
@@ -112,6 +130,28 @@ export function NowPlayingScreen() {
 
       <QueueDrawer open={panel === 'queue'} onClose={() => setPanel('none')} />
       <LyricsPanel open={panel === 'lyrics'} onClose={() => setPanel('none')} />
+
+      {/* Song Memory — create/edit dialog + full-screen slideshow */}
+      {memoryView === 'editor' && (
+        <MemoryEditor
+          key={`editor-${song.id}`}
+          songTitle={song.title}
+          initial={memory}
+          onClose={() => setMemoryView(memory ? 'slideshow' : 'none')}
+          onSaved={(saved) => {
+            void useMemoryStore.getState().saveMemory(song.id, saved)
+            setMemoryView('slideshow')
+          }}
+        />
+      )}
+      {memoryView === 'slideshow' && memory && (
+        <MemorySlideshow
+          key={`slideshow-${song.id}`}
+          photos={memory.photos}
+          onExit={() => setMemoryView('none')}
+          onEdit={() => setMemoryView('editor')}
+        />
+      )}
     </div>
   )
 }

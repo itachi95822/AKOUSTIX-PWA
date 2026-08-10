@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   SkipBack, SkipForward, Shuffle, Repeat, Repeat1,
-  Heart, Mic2, ListMusic, Play, Pause
+  Heart, Mic2, ListMusic, Images, Play, Pause
 } from 'lucide-react'
 import { formatTime, cx } from '@/utils/format'
 import { useLibraryStore } from '@/store/libraryStore'
@@ -419,7 +419,8 @@ function TransportControls({ onPrev, onTogglePlay, onNext, isPlaying }: {
 }
 
 function SecondarySection({
-  isFavourite, onToggleFavourite, onOpenLyrics, onOpenQueue, repeat, onCycleRepeat, shuffle, onToggleShuffle
+  isFavourite, onToggleFavourite, onOpenLyrics, onOpenQueue, repeat, onCycleRepeat, shuffle, onToggleShuffle,
+  hasMemory, onOpenMemory
 }: {
   isFavourite: boolean
   onToggleFavourite: () => void
@@ -429,6 +430,8 @@ function SecondarySection({
   onCycleRepeat: () => void
   shuffle: boolean
   onToggleShuffle: () => void
+  hasMemory: boolean
+  onOpenMemory: () => void
 }) {
   const RepeatIcon = repeat === 'one' ? Repeat1 : Repeat
 
@@ -442,6 +445,9 @@ function SecondarySection({
       </HwButton>
       <HwButton label={isFavourite ? 'Remove favourite' : 'Add favourite'} active={isFavourite} onClick={onToggleFavourite} className="w-10 h-10">
         <Heart size={16} fill={isFavourite ? 'currentColor' : 'none'} />
+      </HwButton>
+      <HwButton label="Memory" active={hasMemory} onClick={onOpenMemory} className="w-10 h-10">
+        <Images size={16} />
       </HwButton>
       <HwButton label="Lyrics" onClick={onOpenLyrics} className="w-10 h-10">
         <Mic2 size={16} />
@@ -538,7 +544,7 @@ export function CDPlayer(props: EraPlayerProps) {
     repeat, shuffle, isFavourite,
     onSeek, onTogglePlay, onNext, onPrev,
     onToggleShuffle, onCycleRepeat, onToggleFavourite,
-    onOpenLyrics, onOpenQueue
+    onOpenLyrics, onOpenQueue, hasMemory, onOpenMemory
   } = props
 
   const pct = duration ? (currentTime / duration) * 100 : 0
@@ -671,6 +677,7 @@ export function CDPlayer(props: EraPlayerProps) {
             onOpenLyrics={onOpenLyrics} onOpenQueue={onOpenQueue}
             repeat={repeat} onCycleRepeat={onCycleRepeat}
             shuffle={shuffle} onToggleShuffle={onToggleShuffle}
+            hasMemory={hasMemory} onOpenMemory={onOpenMemory}
           />
 
           <AlbumBrowse onPlaySong={playSong} />

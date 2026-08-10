@@ -34,7 +34,9 @@ export function ComputerPlayer(props: EraPlayerProps) {
     onCycleRepeat,
     onToggleFavourite,
     onOpenLyrics,
-    onOpenQueue
+    onOpenQueue,
+    hasMemory,
+    onOpenMemory
   } = props
 
   const pct = duration ? (currentTime / duration) * 100 : 0
@@ -175,6 +177,8 @@ export function ComputerPlayer(props: EraPlayerProps) {
               onCycleRepeat={onCycleRepeat}
               shuffle={shuffle}
               onToggleShuffle={onToggleShuffle}
+              hasMemory={hasMemory}
+              onOpenMemory={onOpenMemory}
             />
           </div>
         </div>

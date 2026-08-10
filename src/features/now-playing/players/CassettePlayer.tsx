@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import {
   SkipBack, SkipForward, Rewind, FastForward,
-  Shuffle, Repeat, Repeat1, Heart, Mic2, ListMusic
+  Shuffle, Repeat, Repeat1, Heart, Mic2, ListMusic, Images
 } from 'lucide-react'
 import { formatTime, cx } from '@/utils/format'
 import { usePlayerStore } from '@/store/playerStore'
@@ -65,7 +65,9 @@ export function CassettePlayer(props: EraPlayerProps) {
     onCycleRepeat,
     onToggleFavourite,
     onOpenLyrics,
-    onOpenQueue
+    onOpenQueue,
+    hasMemory,
+    onOpenMemory
   } = props
 
   const volume = usePlayerStore((s) => s.volume)
@@ -358,6 +360,13 @@ export function CassettePlayer(props: EraPlayerProps) {
               onClick={() => handleClick(onToggleFavourite)}
             >
               <Heart size={15} fill={isFavourite ? 'currentColor' : 'none'} />
+            </SwitchButton>
+            <SwitchButton
+              label="Memory"
+              active={hasMemory}
+              onClick={() => handleClick(onOpenMemory)}
+            >
+              <Images size={15} />
             </SwitchButton>
             <SwitchButton
               label="Lyrics"

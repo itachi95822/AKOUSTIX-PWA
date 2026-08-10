@@ -49,3 +49,18 @@ export interface Playable {
   song: Song
   album: Album
 }
+
+/** One saved Memory per song — up to 5 photos plus optional note/date/time. */
+export interface SongMemory {
+  songId: string
+  /** Data-URL images chosen from the device gallery (1–5). */
+  photos: string[]
+  /** Optional note — at most 10 words. */
+  note?: string
+  /** Optional calendar date, ISO `YYYY-MM-DD`. */
+  date?: string
+  /** Optional time, 24-hour `HH:MM`. */
+  time?: string
+  /** Last-saved timestamp (ms). */
+  updatedAt: number
+}
