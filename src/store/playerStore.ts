@@ -16,7 +16,10 @@ import type { RepeatMode, Song } from '@/types'
 // ============================================================
 
 interface PlayerState {
+  /** Playback order. When shuffle is on this is the reordered queue. */
   queue: Song[]
+  /** The original (unshuffled) queue, restored when shuffle is turned off. */
+  baseQueue: Song[]
   index: number
   isPlaying: boolean
   currentTime: number
@@ -63,6 +66,7 @@ export const usePlayerStore = create<PlayerState>()(
   persist(
     (set, get) => ({
       queue: [],
+      baseQueue: [],
       index: 0,
       isPlaying: false,
       currentTime: 0,
@@ -78,7 +82,9 @@ export const usePlayerStore = create<PlayerState>()(
       playQueue: (songs, startIndex = 0) => {
         if (songs.length === 0) return
         const idx = Math.max(0, Math.min(startIndex, songs.length - 1))
-        set({ queue: songs, index: idx, currentTime: 0, duration: songs[idx].durationSec, isPlaying: true, error: null })
+        const base = songs
+        const queue = get().shuffle ? shuffleFrom(base, idx) : base
+        set({ queue, baseQueue: base, index: idx, currentTime: 0, duration: songs[idx].durationSec, isPlaying: true, error: null })
         pushRecent(songs[idx].id)
       },
 
@@ -86,10 +92,12 @@ export const usePlayerStore = create<PlayerState>()(
         if (allSongs && allSongs.length > 0) {
           // Queue the full library; start at the chosen song's position.
           const idx = Math.max(0, allSongs.findIndex((s) => s.id === song.id))
-          set({ queue: allSongs, index: idx, currentTime: 0, duration: allSongs[idx].durationSec, isPlaying: true, error: null })
+          const base = allSongs
+          const queue = get().shuffle ? shuffleFrom(base, idx) : base
+          set({ queue, baseQueue: base, index: idx, currentTime: 0, duration: allSongs[idx].durationSec, isPlaying: true, error: null })
           pushRecent(allSongs[idx].id)
         } else {
-          set({ queue: [song], index: 0, currentTime: 0, duration: song.durationSec, isPlaying: true, error: null })
+          set({ queue: [song], baseQueue: [song], index: 0, currentTime: 0, duration: song.durationSec, isPlaying: true, error: null })
           pushRecent(song.id)
         }
       },
@@ -100,28 +108,19 @@ export const usePlayerStore = create<PlayerState>()(
 
       // Always advances to the next track (manual press OR auto-advance when
       // repeat !== 'one'). Repeat-One replay on natural end is handled by the
-      // engine's `ended` event, not here.
+      // engine's `ended` event, not here. Shuffle is encoded in the queue
+      // order itself (toggleShuffle reorders upcoming songs), so advancing
+      // linearly always follows the shuffled Up Next.
       next: () => {
-        const { queue, index, repeat, shuffle } = get()
+        const { queue, index, repeat } = get()
         if (queue.length === 0) return
-        let nextIdx: number
-        if (shuffle) {
-          if (queue.length === 1) nextIdx = index
+        let nextIdx = index + 1
+        if (nextIdx >= queue.length) {
+          if (repeat === 'all') nextIdx = 0
           else {
-            // True shuffle: never immediately repeat the current track.
-            do {
-              nextIdx = Math.floor(Math.random() * queue.length)
-            } while (nextIdx === index)
-          }
-        } else {
-          nextIdx = index + 1
-          if (nextIdx >= queue.length) {
-            if (repeat === 'all') nextIdx = 0
-            else {
-              // End of queue, no repeat → stop at the end of the last track.
-              set({ isPlaying: false, currentTime: queue[index].durationSec, duration: queue[index].durationSec })
-              return
-            }
+            // End of queue, no repeat → stop at the end of the last track.
+            set({ isPlaying: false, currentTime: queue[index].durationSec, duration: queue[index].durationSec })
+            return
           }
         }
         set({ index: nextIdx, currentTime: 0, duration: queue[nextIdx].durationSec, isPlaying: true, error: null })
@@ -156,7 +155,19 @@ export const usePlayerStore = create<PlayerState>()(
         if (audioEl) audioEl.volume = nv
       },
 
-      toggleShuffle: () => set((s) => ({ shuffle: !s.shuffle })),
+      toggleShuffle: () => {
+        const { shuffle, queue, baseQueue, index } = get()
+        if (shuffle) {
+          // Turn off → restore the original order, keeping the current song.
+          const current = queue[index]
+          const restoredIdx = current ? baseQueue.findIndex((s) => s.id === current.id) : -1
+          set({ shuffle: false, queue: baseQueue, index: Math.max(0, restoredIdx) })
+        } else {
+          // Turn on → rearrange the upcoming songs into a fresh random order.
+          // The current song keeps its position (index is unchanged).
+          set({ shuffle: true, queue: shuffleFrom(queue, index) })
+        }
+      },
       cycleRepeat: () =>
         set((s) => ({
           repeat: s.repeat === 'off' ? 'all' : s.repeat === 'all' ? 'one' : 'off'
@@ -179,7 +190,8 @@ export const usePlayerStore = create<PlayerState>()(
         pushRecent(queue[i].id)
       },
 
-      clearQueue: () => set({ queue: [], index: 0, currentTime: 0, duration: 0, isPlaying: false, error: null }),
+      clearQueue: () =>
+        set({ queue: [], baseQueue: [], index: 0, currentTime: 0, duration: 0, isPlaying: false, error: null }),
 
       clearError: () => set({ error: null, errorAt: null }),
 
@@ -233,6 +245,22 @@ function pushRecent(songId: string) {
   const state = usePlayerStore.getState()
   const next = [songId, ...state.recentlyPlayed.filter((id) => id !== songId)].slice(0, RECENT_LIMIT)
   usePlayerStore.setState({ recentlyPlayed: next })
+}
+
+/**
+ * Fisher–Yates shuffle of the upcoming portion of the queue only — everything
+ * at or before `index` (the currently playing song) keeps its position, so the
+ * current track never changes. `next()` then advances linearly through this
+ * reordered list.
+ */
+function shuffleFrom(queue: Song[], index: number): Song[] {
+  const head = queue.slice(0, index + 1)
+  const tail = queue.slice(index + 1)
+  for (let i = tail.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[tail[i], tail[j]] = [tail[j], tail[i]]
+  }
+  return [...head, ...tail]
 }
 
 // ---------- Playback engine ----------

@@ -6,20 +6,21 @@ import { X, Pencil } from 'lucide-react'
 // MemorySlideshow — a rain-covered window playing a song's
 // saved photos. Every photo fits inside one consistent glass
 // frame using `object-contain` (never cropped or stretched),
-// crossfading with a slow Ken Burns zoom while small raindrops
-// and occasional streaks drift down the pane. Audio is never
-// touched. Only Exit and Edit are shown, per spec.
+// crossfading with a slow Ken Burns zoom while realistic
+// raindrops and slow water streaks drift down the pane.
+// Between transitions a soft light sweeps across the glass —
+// like a passing reflection or distant lightning on a rainy
+// night. The photos stay sharp: no frosted blur over them.
+// Audio is never touched. Only Exit and Edit are shown.
 // ============================================================
 
 const SLIDE_MS = 5000
 const CROSSFADE_MS = 800
 
 // ------------------------------------------------------------
-// RainGlass — a lightweight canvas that paints soft raindrops
-// and the occasional falling streak on top of the pane. A
-// single rAF loop, DPR-capped resolution and a handful of
-// shapes keep it cheap enough to run for as long as the
-// slideshow is open.
+// RainGlass — a lightweight canvas painting realistic droplets
+// and slow streaks on the pane. A single rAF loop, DPR-capped
+// resolution and gradient-only shapes keep it cheap.
 // ------------------------------------------------------------
 
 interface Drop {
@@ -73,49 +74,59 @@ function RainGlass() {
     const ro = new ResizeObserver(resize)
     ro.observe(canvas)
 
-    const drops: Drop[] = Array.from({ length: 52 }, () => ({
+    const drops: Drop[] = Array.from({ length: 88 }, () => ({
       x: rand(0, W || 1),
       y: rand(-H * 0.25, H),
-      r: rand(0.9, 2.5),
-      vy: rand(36, 96),
-      vx: rand(-8, 8),
-      wobble: rand(0.1, 0.45),
+      r: rand(1.1, 3.4),
+      vy: rand(40, 130),
+      vx: rand(-10, 10),
+      wobble: rand(0.1, 0.5),
       phase: rand(0, Math.PI * 2),
-      opacity: rand(0.16, 0.38)
+      opacity: rand(0.3, 0.75)
     }))
 
-    const streaks: Streak[] = Array.from({ length: 4 }, () => ({
+    const streaks: Streak[] = Array.from({ length: 6 }, () => ({
       x: rand(0, W || 1),
       y: rand(-H * 0.3, H),
-      len: rand(14, 40),
-      w: rand(0.8, 1.6),
-      vy: rand(240, 420),
-      vx: rand(-14, 14),
-      opacity: rand(0.12, 0.26)
+      len: rand(26, 64),
+      w: rand(1, 2.2),
+      vy: rand(60, 180),
+      vx: rand(-18, 18),
+      opacity: rand(0.32, 0.6)
     }))
 
+    // A raindrop: soft glassy body + a bright specular glint up-left.
     const drawDrop = (d: Drop) => {
       const wob = Math.sin(d.phase) * d.wobble
       const g = ctx.createRadialGradient(d.x, d.y, 0, d.x, d.y, d.r)
-      g.addColorStop(0, `rgba(212,227,246,${d.opacity})`)
-      g.addColorStop(1, 'rgba(212,227,246,0)')
+      g.addColorStop(0, `rgba(226,238,252,${d.opacity})`)
+      g.addColorStop(1, 'rgba(226,238,252,0)')
       ctx.fillStyle = g
       ctx.beginPath()
-      ctx.ellipse(d.x, d.y, d.r * 0.7, d.r, wob, 0, Math.PI * 2)
+      ctx.ellipse(d.x, d.y, d.r * 0.72, d.r, wob, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.ellipse(d.x - d.r * 0.22, d.y - d.r * 0.3, d.r * 0.15, d.r * 0.2, wob, 0, Math.PI * 2)
+      ctx.fillStyle = `rgba(255,255,255,${d.opacity * 0.95})`
       ctx.fill()
     }
 
+    // A water streak: tapering tail with a brighter head droplet.
     const drawStreak = (s: Streak) => {
       const grad = ctx.createLinearGradient(0, s.y, 0, s.y + s.len)
-      grad.addColorStop(0, 'rgba(210,225,245,0)')
-      grad.addColorStop(1, `rgba(210,225,245,${s.opacity})`)
+      grad.addColorStop(0, 'rgba(218,232,250,0)')
+      grad.addColorStop(1, `rgba(218,232,250,${s.opacity})`)
       ctx.strokeStyle = grad
       ctx.lineWidth = s.w
       ctx.lineCap = 'round'
       ctx.beginPath()
       ctx.moveTo(s.x, s.y)
-      ctx.lineTo(s.x + s.vx * 0.08, s.y + s.len)
+      ctx.lineTo(s.x + s.vx * 0.12, s.y + s.len)
       ctx.stroke()
+      ctx.beginPath()
+      ctx.arc(s.x + s.vx * 0.12, s.y + s.len, Math.max(s.w * 0.9, 0.9), 0, Math.PI * 2)
+      ctx.fillStyle = `rgba(238,246,255,${s.opacity + 0.14})`
+      ctx.fill()
     }
 
     const frame = (now: number) => {
@@ -127,22 +138,22 @@ function RainGlass() {
       for (const s of streaks) {
         s.y += s.vy * dt
         s.x += s.vx * dt
-        if (s.y - s.len > H || s.x < -20 || s.x > W + 20) {
+        if (s.y - s.len > H || s.x < -24 || s.x > W + 24) {
           s.x = rand(0, W)
-          s.y = rand(-H * 0.3, -s.len)
-          s.len = rand(14, 42)
-          s.opacity = rand(0.12, 0.26)
+          s.y = rand(-H * 0.35, -s.len)
+          s.len = rand(26, 64)
+          s.opacity = rand(0.32, 0.6)
         }
         drawStreak(s)
       }
 
       for (const d of drops) {
         d.y += d.vy * dt
-        d.x += d.vx * dt + Math.sin(d.phase += dt * 2) * 0.12
+        d.x += d.vx * dt + Math.sin((d.phase += dt * 2)) * 0.14
         if (d.y > H + d.r) {
           d.y = rand(-H * 0.25, -2)
           d.x = rand(0, W)
-          d.r = rand(0.9, 2.5)
+          d.r = rand(1.1, 3.4)
         }
         drawDrop(d)
       }
@@ -162,6 +173,47 @@ function RainGlass() {
 }
 
 // ------------------------------------------------------------
+// LightingFX — a soft light band that sweeps across the glass
+// on every photo transition, with an occasional faint "distant
+// lightning" glow. Remounted per transition (keyed by slide),
+// so the sweep plays once, briefly, without overpowering.
+// ------------------------------------------------------------
+
+function LightingFX({ lightning }: { lightning: boolean }) {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* Soft reflection sweeping across the wet glass */}
+      <motion.div
+        className="absolute top-0 bottom-0 w-[45%]"
+        style={{
+          left: 0,
+          background:
+            'linear-gradient(115deg, transparent 0%, rgba(190,215,245,0.10) 45%, rgba(235,245,255,0.18) 55%, transparent 100%)',
+          transform: 'skewX(-14deg)',
+          filter: 'blur(7px)'
+        }}
+        initial={{ x: '-130%', opacity: 0 }}
+        animate={{ x: '360%', opacity: [0, 1, 1, 0] }}
+        transition={{ duration: 2, times: [0, 0.2, 0.75, 1], ease: 'easeInOut' }}
+      />
+      {/* Occasional distant lightning reflecting on the glass */}
+      {lightning && (
+        <motion.div
+          className="absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(90% 70% at 50% 30%, rgba(205,225,255,0.14) 0%, rgba(160,190,235,0.05) 45%, transparent 78%)'
+          }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0, 1, 0.5, 0] }}
+          transition={{ duration: 1.4, times: [0, 0.15, 0.4, 1], ease: 'easeInOut' }}
+        />
+      )}
+    </div>
+  )
+}
+
+// ------------------------------------------------------------
 // Slideshow
 // ------------------------------------------------------------
 
@@ -175,6 +227,7 @@ export function MemorySlideshow({
   onEdit: () => void
 }) {
   const [index, setIndex] = useState(0)
+  const [fx, setFx] = useState({ key: 0, lightning: false })
 
   useEffect(() => {
     if (photos.length < 2) return
@@ -188,6 +241,11 @@ export function MemorySlideshow({
     setIndex(0)
   }, [photos])
 
+  // Fire the light sweep (and occasionally a lightning glow) per transition.
+  useEffect(() => {
+    setFx((prev) => ({ key: prev.key + 1, lightning: Math.random() < 0.18 }))
+  }, [index])
+
   const current = photos[index] ?? photos[0]
   if (!current) return null
 
@@ -196,8 +254,8 @@ export function MemorySlideshow({
       className="fixed inset-0 z-50 flex flex-col overflow-hidden"
       style={{
         background: 'radial-gradient(120% 120% at 50% 0%, rgba(16,24,40,0.55) 0%, rgba(4,7,13,0.85) 100%)',
-        backdropFilter: 'blur(18px) saturate(0.8)',
-        WebkitBackdropFilter: 'blur(18px) saturate(0.8)'
+        backdropFilter: 'blur(14px) saturate(0.8)',
+        WebkitBackdropFilter: 'blur(14px) saturate(0.8)'
       }}
     >
       {/* Window — one consistent frame for every photo */}
@@ -212,7 +270,7 @@ export function MemorySlideshow({
               boxShadow: '0 0 0 1px rgba(255,255,255,0.1) inset, 0 2px 6px rgba(0,0,0,0.4) inset'
             }}
           >
-            {/* Photo — object-contain, never cropped or stretched */}
+            {/* Photo — sharp, object-contain, never cropped or stretched */}
             <AnimatePresence initial={false}>
               <motion.img
                 key={`${index}-${photos.length}`}
@@ -230,14 +288,15 @@ export function MemorySlideshow({
               />
             </AnimatePresence>
 
-            {/* Glass pane — faint tint + reflection so the photo sits behind glass */}
+            {/* Nostalgic light reflections on the glass between transitions */}
+            <LightingFX key={fx.key} lightning={fx.lightning} />
+
+            {/* Barely-there glass tint — no blur, the photo stays sharp */}
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
-                backdropFilter: 'blur(1.5px) saturate(1.05)',
-                WebkitBackdropFilter: 'blur(1.5px) saturate(1.05)',
                 background:
-                  'linear-gradient(115deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.03) 22%, rgba(255,255,255,0) 40%, rgba(255,255,255,0) 72%, rgba(255,255,255,0.05) 100%)'
+                  'linear-gradient(115deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 24%, rgba(255,255,255,0) 42%, rgba(255,255,255,0) 74%, rgba(255,255,255,0.04) 100%)'
               }}
             />
 
@@ -247,7 +306,7 @@ export function MemorySlideshow({
             {/* Soft inner vignette */}
             <div
               className="absolute inset-0 pointer-events-none"
-              style={{ boxShadow: 'inset 0 0 60px rgba(0,0,0,0.35)' }}
+              style={{ boxShadow: 'inset 0 0 60px rgba(0,0,0,0.3)' }}
             />
           </div>
         </div>
