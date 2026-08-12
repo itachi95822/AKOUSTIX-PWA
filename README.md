@@ -2,119 +2,131 @@
 
 > **Where Every Song Feels Like a Memory.**
 
-AKOUSTIX is a nostalgia-inspired Progressive Web App (PWA) that transforms modern music streaming into an immersive retro experience. Instead of simply listening to music, users relive different eras through beautifully designed playback interfaces inspired by iconic music devices like Cassette Players, CD Players, and Classic Computers.
+AKOUSTIX is a nostalgia-inspired music player that transforms digital listening into an immersive retro experience.
 
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
-![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black)
-![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)
-![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?logo=supabase&logoColor=white)
-![PWA](https://img.shields.io/badge/PWA-Ready-blue)
-![Status](https://img.shields.io/badge/Status-Completed-success)
+Instead of presenting music through a conventional modern streaming interface, AKOUSTIX lets users experience their music through different eras of music technology — **Cassette, CD/Gramophone, and Classic Computer**.
+
+The goal is simple: make digital music feel more personal, tactile, and memorable.
 
 ---
 
-# 🌟 Inspiration
+## ✨ Features
 
-Modern music applications prioritize convenience but often lose the emotional connection people once had with physical music players.
+* 🎵 Music playback using a connected music library
+* 📼 **Cassette Era** — vintage cassette-player inspired experience
+* 💿 **CD / Gramophone Era** — physical-media inspired playback experience
+* 🖥️ **Computer Era** — classic computer-inspired music interface
+* 🎨 Album artwork integrated into the listening experience
+* 🔀 Shuffle and Repeat
+* 📋 Up Next / Queue
+* 🧠 **Memory Feature**
 
-AKOUSTIX brings that feeling back by combining modern streaming technology with nostalgic interfaces, allowing users to experience music through interactive retro playback devices.
-
----
-
-# ✨ Features
-
-- 🎵 Stream music using Supabase Storage
-- 💽 Three immersive playback themes
-  - Cassette Player
-  - CD Player
-  - Classic Computer
-- 🎨 Dynamic album artwork
-- ⏯️ Play, Pause, Next & Previous controls
-- 🔀 Shuffle & Repeat
-- 📋 Music Queue
-- 📱 Responsive Design
-- 🌐 Progressive Web App (PWA)
-- ☁️ Supabase-powered backend
-
----
-
-# 🛠 Tech Stack
-
-- TypeScript
-- JavaScript
-- HTML5
-- CSS3
-- React
-- Vite
-- Supabase
-- Vercel
+  * Create a personal Memory for a song
+  * Add up to 5 photos from your device
+  * Add an optional short note
+  * Add an optional date and time
+  * Save the Memory for later
+  * Edit an existing Memory
+  * View the Memory as an immersive slideshow
+  * Photos use subtle transitions and slow-zoom effects
+  * Music continues playing while the Memory slideshow is displayed
+* 📱 Responsive interface
+* 🌐 Progressive Web App (PWA)
+* ☁️ Supabase integration
+* 🚀 Vercel deployment
 
 ---
 
-# 📂 Project Structure
+## 💡 Inspiration
 
-```text
-AKOUSTIX-PWA
-│
-├── public/
-├── src/
-│   ├── assets/
-│   ├── components/
-│   ├── hooks/
-│   ├── pages/
-│   ├── services/
-│   ├── styles/
-│   └── utils/
-│
-├── supabase/
-├── package.json
-└── README.md
-```
+Modern music applications are designed around speed, convenience, recommendations, and endless scrolling.
+
+AKOUSTIX explores a different idea:
+
+> **What if digital music could feel like using the music players we grew up with?**
+
+The application transforms a digital music library into a collection of nostalgic listening experiences inspired by physical media and classic music devices.
+
+Each Era provides a different way to experience the same music.
 
 ---
 
-# 📸 Screenshots
+## 🎧 The Three Eras
 
-> *(Screenshots will be added here before the final submission.)*
+### 📼 Cassette Era
 
-- Home Screen
-- Cassette Player
-- CD Player
-- Computer Theme
-- Music Library
+A vintage cassette-player inspired interface designed around the feeling of physical cassette hardware.
+
+The cassette, reels, controls, and visual elements are designed to make playback feel more tactile instead of looking like a conventional streaming application.
+
+### 💿 CD / Gramophone Era
+
+A physical-media inspired interface featuring a rotating CD/record-style experience and gramophone-inspired visual mechanics.
+
+Album artwork is integrated into the playback experience to make the currently playing music feel more like a physical record.
+
+### 🖥️ Computer Era
+
+A classic computer-inspired music interface representing the transition from physical music players to early digital music experiences.
+
+This Era intentionally provides a more conventional digital interface compared with the physical-media inspired Cassette and CD Eras.
 
 ---
 
-# ⚙️ Installation
+## 🧠 Memory
+
+The Memory feature connects music with the user's own experiences.
+
+A song can have a personal Memory containing:
+
+* Up to 5 photos
+* An optional note of up to 10 words
+* An optional date
+* An optional time
+
+When a Memory exists, it can be opened directly from the song.
+
+The Memory is presented as an immersive slideshow where photos transition with a subtle slow-zoom effect while the music continues playing.
+
+Saved Memories can also be edited later.
+
+---
+
+## 🛠️ Tech Stack
+
+* TypeScript
+* JavaScript
+* HTML
+* CSS
+* React
+* Vite
+* Supabase
+* Vercel
+
+---
+
+## ⚙️ Installation
 
 ### Clone the repository
 
 ```bash
 git clone https://github.com/itachi95822/AKOUSTIX-PWA.git
-```
-
-### Move into the project
-
-```bash
 cd AKOUSTIX-PWA
-```
-
-### Install dependencies
-
-```bash
 npm install
 ```
 
-### Create a `.env` file
+### Configure environment variables
+
+Create a `.env` file containing the required Supabase environment variables:
 
 ```env
 VITE_SUPABASE_URL=YOUR_SUPABASE_PROJECT_URL
 VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_PUBLISHABLE_KEY
 ```
 
-> **Do not upload your real `.env` file to GitHub.**
+**Never upload your real `.env` file or private API keys to GitHub.**
 
-### Start the development server
+### Run locally
 
 ```bash
 npm run dev
@@ -134,50 +146,61 @@ npm run preview
 
 ---
 
-# ☁️ Supabase Setup
+## ☁️ Supabase
 
-### Storage Bucket
+AKOUSTIX uses Supabase for its music library, database, and media storage.
 
-Create a public storage bucket named:
+### Database Security
 
-```text
-music
+The `songs` table has **Row Level Security (RLS)** enabled.
+
+The application only requires users to **read** music-library information, so the database is configured with a read-only `SELECT` policy for the public/client role.
+
+Users are not given permission through the application to:
+
+* Insert songs
+* Update songs
+* Delete songs
+* Modify database records
+
+This keeps the music-library database protected from unauthorized write operations while still allowing the application to load songs.
+
+### Storage
+
+The required storage bucket is configured for **public read access** because the application needs to load music and artwork directly from the frontend.
+
+Public access is intentionally used for media files that the application needs to serve to users. Database security is handled separately through **Row Level Security (RLS)**.
+
+### Environment Variables
+
+The frontend uses the Supabase project URL and publishable/anonymous client key:
+
+```env
+VITE_SUPABASE_URL=YOUR_SUPABASE_PROJECT_URL
+VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_PUBLISHABLE_KEY
 ```
 
-### Songs Table
+The publishable/anonymous key is intended for client-side use when the Supabase project is correctly secured with RLS and appropriate storage policies.
 
-Suggested columns:
+**Never expose or commit a Supabase `service_role` key, database password, or other private credentials.**
 
-| Column | Type |
-|---------|------|
-| id | uuid |
-| title | text |
-| artist | text |
-| album | text |
-| genre | text |
-| duration | text |
-| music_url | text |
-| cover_url | text |
+For production, verify that:
 
-Enable:
-
-- Row Level Security (RLS)
-- Read-only policy for the `songs` table
-- Public read access for the `music` storage bucket
+* RLS is enabled on the required database tables.
+* Only the necessary `SELECT` access is granted to the public/client role.
+* Unnecessary `INSERT`, `UPDATE`, and `DELETE` access is not granted.
+* Public storage access is enabled only for buckets intentionally meant to serve files publicly.
+* Private credentials remain in environment variables and are never committed to GitHub.
 
 ---
 
-# 🚀 Deployment
+## 🚀 Deployment
 
-AKOUSTIX is designed to be deployed on **Vercel**.
+AKOUSTIX is designed to be deployed using Vercel.
 
-Build the project using:
+Configure the required environment variables in the Vercel project before deployment.
 
-```bash
-npm run build
-```
-
-Configure these environment variables inside Vercel:
+Required variables:
 
 ```text
 VITE_SUPABASE_URL
@@ -186,75 +209,77 @@ VITE_SUPABASE_ANON_KEY
 
 ---
 
-# 👥 Team
+## 👥 Team
 
-**Leader**
-- Manthan
+### Leader
 
-**Members**
-- Koustubh Vatsa
-- Tanya Nailwal
-- Divya Sharma
+**Manthan**
 
----
+### Team Members
 
-# 🤖 AI Tools Used
-
-The following AI tools assisted during the development process:
-
-- ChatGPT
-- Tempo AI
-- Google Gemini
-- Canva (branding and logo design)
-
-These tools were used for brainstorming, UI refinement, debugging, documentation, logo design, and development assistance.
+* **Tanya Nailwal**
+* **Koustubh Vatsa**
+* **Divya Sharma**
 
 ---
 
-# 🎵 Assets
+## 🤖 AI Tools Used
+
+AI tools were used during different parts of the development process, including brainstorming, UI refinement, debugging, documentation, branding, and development assistance.
+
+Tools used:
+
+* ChatGPT
+* Tempo AI
+* Google Gemini
+* Canva
+
+---
+
+## 🎵 Assets
 
 ### Music
 
-Royalty-free music sourced from **Pixabay**.
+Music used in the prototype was sourced from **Pixabay**.
 
 ### Cover Art
 
-Album artwork generated using **Google Gemini**.
+Cover artwork used in the prototype was generated using **Google Gemini**.
 
-All assets remain subject to their original licenses and terms of use.
+Third-party assets remain subject to their respective licenses and terms of use.
 
 ---
 
-# 📧 Contact
+## 📧 Contact
 
 For feedback or suggestions:
 
-**Email:** itachigamer95822@gmail.com
+**Email:** [itachigamer95822@gmail.com](mailto:itachigamer95822@gmail.com)
 
 ---
 
-# 📄 License
+## 📌 Project Status
 
-This project was developed as a hackathon prototype for educational and demonstration purposes.
+AKOUSTIX is a **hackathon prototype** created to explore a nostalgia-focused approach to digital music listening.
+
+The project focuses on transforming digital music into a more personal and immersive experience through nostalgic interfaces and the Memory feature.
+
+Some ideas may be expanded in future versions.
 
 ---
 
-# 🙏 Acknowledgements
+## 🙏 Acknowledgements
 
 Special thanks to:
 
-- Pixabay for royalty-free music.
-- Supabase for backend and storage.
-- Vercel for deployment.
-- The React, Vite, and TypeScript communities.
-- Everyone who contributed ideas, testing, and feedback throughout the development process.
+* Pixabay for music assets
+* Supabase for backend and storage infrastructure
+* Vercel for deployment
+* React, Vite, and TypeScript communities
+* Everyone who provided feedback and ideas during development
 
 ---
 
-<div align="center">
+# 🎶 AKOUSTIX
 
-## 🎶 AKOUSTIX
-
-### *Where Every Song Feels Like a Memory.*
-
-</div>
+### Where Every Song Feels Like a Memory.
