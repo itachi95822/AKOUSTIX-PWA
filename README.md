@@ -282,4 +282,4 @@ Special thanks to:
 
 # 🎶 AKOUSTIX
 
-### Where Every Song Feels Like a Memory.
+### Every Song Has a Memory.
